@@ -19,7 +19,11 @@ content
     ;
 
 elementAttribute
-    : TAG_NAME ATTRIBUTE_EQUALS (ATTRIBUTE_VALUE | elementInsert)
+    : TAG_NAME ATTRIBUTE_EQUALS (attributeInsert | elementInsert)
+    ;
+
+attributeInsert
+    : ATTRIBUTE_OPEN ATTRIBUTE_VALUE (ATTRIBUTE_SEPARATOR ATTRIBUTE_VALUE)* ATTRIBUTE_CLOSE
     ;
 
 elementInsert
