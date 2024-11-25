@@ -5,19 +5,40 @@ options {
 }
 
 document
-    :  element* EOF
+    :  element*
     ;
 
 element
-    : TAG_OPEN TAG_NAME elementAttribute* (TAG_CLOSE content TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE
-                        | TAG_SLASH_CLOSE)
+    : TAG_OPEN TAG_NAME elementAttribute* (TAG_CLOSE content TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE | TAG_SLASH_CLOSE)
     ;
 
 content
     : (element
-    | TEXT)*
+    | TEXT
+    | elementInsert)*
     ;
 
 elementAttribute
-    : TAG_NAME ATTRIBUTE_EQUALS ATTRIBUTE_VALUE
+    : TAG_NAME ATTRIBUTE_EQUALS (ATTRIBUTE_VALUE | elementInsert)
+    ;
+
+elementInsert
+    : (VAR_OPEN | ATTRIBUTE_VAR_OPEN) elementInsertContent VAR_CLOSE
+    ;
+
+elementInsertContent
+    : (varFunction | VAR_NAME)*
+    ;
+
+varFunction
+    : VAR_NAME LPAREN functionArgs? RPAREN
+    ;
+
+functionArgs
+    : expression (COMMA expression)*
+    ;
+
+expression
+    : VAR_NAME
+    | varFunction
     ;
