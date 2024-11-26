@@ -1,5 +1,10 @@
 lexer grammar JSBLexer;
 
+WS: [ \t\r\n]+ -> skip ;
+
+PROPS_OPEN: '<props' .*? '>' -> pushMode(PROPS) ;
+CODE_OPEN: '<code' .*? '>' -> pushMode(CODE) ;
+
 TAG_OPEN: '<' -> pushMode(TAG) ;
 VAR_OPEN: '{{' -> pushMode(VAR) ;
 ID: [a-zA-Z_][a-zA-Z0-9_-]* ;
@@ -7,7 +12,16 @@ TEXT: ~[<]+ ;
 
 QUOTE: ['] ;
 SPACE: ' ' ;
-WS      : [ \t\r\n]+ -> skip ;
+
+mode PROPS;
+
+    PROPS_WS: WS -> skip ;
+    PROPS_CLOSE: .*? '</props>' -> popMode ;
+
+mode CODE;
+
+    CODE_WS: WS -> skip ;
+    CODE_CLOSE: .*? '</code>' -> popMode ;
 
 mode TAG;
 

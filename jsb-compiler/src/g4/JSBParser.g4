@@ -5,15 +5,25 @@ options {
 }
 
 document
-    :  element*
+    :  propsDeclaration?
+       codeDeclaration?
+       elementsDeclaration
     ;
 
-element
+propsDeclaration
+    : PROPS_OPEN PROPS_CLOSE
+    ;
+
+codeDeclaration
+    : CODE_OPEN CODE_CLOSE
+    ;
+
+elementsDeclaration
     : TAG_OPEN TAG_NAME elementAttribute* (TAG_CLOSE content TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE | TAG_SLASH_CLOSE)
     ;
 
 content
-    : (element
+    : (elementsDeclaration
     | TEXT
     | elementInsert)*
     ;
