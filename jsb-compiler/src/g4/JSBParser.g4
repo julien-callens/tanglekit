@@ -5,17 +5,45 @@ options {
 }
 
 document
-    :  propsDeclaration?
+    :  importDeclaration?
+       propsDeclaration?
        codeDeclaration?
        elementsDeclaration
     ;
 
+importDeclaration
+    : IMPORT_OPEN importContent* IMPORT_CLOSE
+    ;
+
+importContent
+    : IMPORT_ID FROM IMPORT_PATH IMPORT_STATEMENT_END
+    ;
+
 propsDeclaration
-    : PROPS_OPEN PROPS_CLOSE
+    : PROPS_OPEN propsContent* PROPS_CLOSE
+    ;
+
+propsContent
+    : variableDeclaration
     ;
 
 codeDeclaration
-    : CODE_OPEN CODE_CLOSE
+    : CODE_OPEN codeStatement* CODE_CLOSE
+    ;
+
+codeStatement
+    : variableDeclaration
+    | functionDeclaration
+    | importDeclaration
+    | LINE_COMMENT
+    ;
+
+functionDeclaration
+    : FUNC_DECLARATION functionCall
+    ;
+
+functionCall
+    : FUNC_NAME FUNC_ARGS_OPEN functionArgs? FUNC_ARGS_CLOSE
     ;
 
 elementsDeclaration
@@ -24,20 +52,20 @@ elementsDeclaration
 
 content
     : (elementsDeclaration
-    | TEXT
-    | elementInsert)*
+    | elementInsert
+    | TEXT)*
     ;
 
 elementAttribute
-    : TAG_NAME ATTRIBUTE_EQUALS (attributeInsert | elementInsert)
+    : TAG_NAME ATT_EQUALS (attributeInsert | elementInsert)
     ;
 
 attributeInsert
-    : ATTRIBUTE_OPEN ATTRIBUTE_VALUE (ATTRIBUTE_SEPARATOR ATTRIBUTE_VALUE)* ATTRIBUTE_CLOSE
+    : ATT_OPEN ATT_VALUE (ATT_SEPARATOR ATT_VALUE)* ATT_CLOSE
     ;
 
 elementInsert
-    : (VAR_OPEN | ATTRIBUTE_VAR_OPEN) elementInsertContent VAR_CLOSE
+    : (VAR_OPEN | ATT_VAR_OPEN) elementInsertContent VAR_CLOSE
     ;
 
 elementInsertContent
@@ -53,6 +81,21 @@ functionArgs
     ;
 
 expression
-    : VAR_NAME
+    : VAR_INT
+    | varString
     | varFunction
+    | VAR_NAME
+    ;
+
+variableDeclaration
+    : variableKind VAR_NAME VAR_EQUALS expression VAR_END
+    ;
+
+varString
+    : STRING_OPEN STRING_CONTENT* STRING_CLOSE
+    ;
+
+variableKind
+    : PROP_ID
+    | VAR_DECLARATION
     ;

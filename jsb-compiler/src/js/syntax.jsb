@@ -1,15 +1,19 @@
+<import>
+    NestedComponent from './NestedComponent';
+    AnotherNestedComponent from './AnotherNestedComponent';
+</import>
+
 <props>
     let variable = 'value';
 </props>
 
 <code>
-    import NestedComponent from './NestedComponent';
-    import AnotherNestedComponent from './AnotherNestedComponent';
-
     // This is a comment
     // this code block is mostly default js code
 
-    function handleClick() {
+    let test = 'balls';
+
+    function handleClick(benas, test) {
         if (variable === 'value') {
             console.log('Variable is equal to value');
         }

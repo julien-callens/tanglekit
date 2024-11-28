@@ -2,27 +2,13 @@
   "name": "document",
   "children": [
     {
-      "name": "element",
+      "name": "elementsDeclaration",
       "children": [
         {
           "name": "<"
         },
         {
-          "name": "div"
-        },
-        {
-          "name": "elementAttribute",
-          "children": [
-            {
-              "name": "class"
-            },
-            {
-              "name": "="
-            },
-            {
-              "name": "'randomClass'"
-            }
-          ]
+          "name": "h2"
         },
         {
           "name": ">"
@@ -31,229 +17,7 @@
           "name": "content",
           "children": [
             {
-              "name": "element",
-              "children": [
-                {
-                  "name": "<"
-                },
-                {
-                  "name": "p"
-                },
-                {
-                  "name": "elementAttribute",
-                  "children": [
-                    {
-                      "name": "class"
-                    },
-                    {
-                      "name": "="
-                    },
-                    {
-                      "name": "elementInsert",
-                      "children": [
-                        {
-                          "name": "{{"
-                        },
-                        {
-                          "name": "elementInsertContent",
-                          "children": [
-                            {
-                              "name": "variable"
-                            }
-                          ]
-                        },
-                        {
-                          "name": "}}"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "name": ">"
-                },
-                {
-                  "name": "content",
-                  "children": [
-                    {
-                      "name": "variable: "
-                    },
-                    {
-                      "name": "elementInsert",
-                      "children": [
-                        {
-                          "name": "{{"
-                        },
-                        {
-                          "name": "elementInsertContent",
-                          "children": [
-                            {
-                              "name": "variable"
-                            }
-                          ]
-                        },
-                        {
-                          "name": "}}"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "name": "<"
-                },
-                {
-                  "name": "/"
-                },
-                {
-                  "name": "p"
-                },
-                {
-                  "name": ">"
-                }
-              ]
-            },
-            {
-              "name": "element",
-              "children": [
-                {
-                  "name": "<"
-                },
-                {
-                  "name": "button"
-                },
-                {
-                  "name": "elementAttribute",
-                  "children": [
-                    {
-                      "name": "onClick"
-                    },
-                    {
-                      "name": "="
-                    },
-                    {
-                      "name": "elementInsert",
-                      "children": [
-                        {
-                          "name": "{{"
-                        },
-                        {
-                          "name": "elementInsertContent",
-                          "children": [
-                            {
-                              "name": "varFunction",
-                              "children": [
-                                {
-                                  "name": "handleClick"
-                                },
-                                {
-                                  "name": "("
-                                },
-                                {
-                                  "name": ")"
-                                }
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "name": "}}"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "name": ">"
-                },
-                {
-                  "name": "content",
-                  "children": [
-                    {
-                      "name": "Click me"
-                    }
-                  ]
-                },
-                {
-                  "name": "<"
-                },
-                {
-                  "name": "/"
-                },
-                {
-                  "name": "button"
-                },
-                {
-                  "name": ">"
-                }
-              ]
-            },
-            {
-              "name": "element",
-              "children": [
-                {
-                  "name": "<"
-                },
-                {
-                  "name": "NestedComponent"
-                },
-                {
-                  "name": "/>"
-                }
-              ]
-            },
-            {
-              "name": "element",
-              "children": [
-                {
-                  "name": "<"
-                },
-                {
-                  "name": "AnotherNestedComponent"
-                },
-                {
-                  "name": ">"
-                },
-                {
-                  "name": "content",
-                  "children": [
-                    {
-                      "name": "\n            content of AnotherNestedComponent\n        "
-                    }
-                  ]
-                },
-                {
-                  "name": "<"
-                },
-                {
-                  "name": "/"
-                },
-                {
-                  "name": "AnotherNestedComponent"
-                },
-                {
-                  "name": ">"
-                }
-              ]
-            },
-            {
-              "name": "elementInsert",
-              "children": [
-                {
-                  "name": "{{"
-                },
-                {
-                  "name": "elementInsertContent",
-                  "children": [
-                    {
-                      "name": "children"
-                    }
-                  ]
-                },
-                {
-                  "name": "}}"
-                }
-              ]
+              "name": "I am a nested component!"
             }
           ]
         },
@@ -264,7 +28,7 @@
           "name": "/"
         },
         {
-          "name": "div"
+          "name": "h2"
         },
         {
           "name": ">"

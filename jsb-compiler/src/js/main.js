@@ -1,42 +1,28 @@
-import JSBSyntaxLexer from "./generated/JSBLexer.js";
-import JSBSyntaxParser from "./generated/JSBParser.js";
-import { CharStream, CommonTokenStream } from "antlr4";
+import antlr4 from "antlr4";
 import fs from "fs";
-
-function convertTreeToJSON(tree, parser) {
-    const node = {
-        name: parser.ruleNames[tree.ruleIndex] || tree.getText(),
-        children: [],
-    };
-
-    for (let i = 0; i < tree.getChildCount(); i++) {
-        const child = tree.getChild(i);
-        if (child.ruleIndex !== undefined) {
-            node.children.push(convertTreeToJSON(child, parser));
-        } else {
-            node.children.push({ name: child.getText() });
-        }
-    }
-
-    return node;
-}
+import {JSBVisitor} from "./JSBVisitor.js";
+import JSBParser from "./generated/JSBParser.js";
+import JSBLexer from "./generated/JSBLexer.js";
 
 function parseText(input) {
-    const chars = new CharStream(input);
-    const lexer = new JSBSyntaxLexer(chars);
-    const tokens = new CommonTokenStream(lexer);
-    const parser = new JSBSyntaxParser(tokens);
-    const context = parser.document();
+    const chars = new antlr4.InputStream(input);
+    const lexer = new JSBLexer(chars);
+    const tokens = new antlr4.CommonTokenStream(lexer);
+    const parser = new JSBParser(tokens);
+    const tree = parser.document();
 
-    const treeJSON = convertTreeToJSON(context, parser);
+    const visitor = new JSBVisitor();
+    const ast = visitor.visit(tree);
 
-    fs.writeFileSync("parseTree.json", JSON.stringify(treeJSON, null, 2));
-    console.log("Parse tree saved to parseTree.json");
+    console.log(JSON.stringify(ast, null, 2))
+
+    fs.writeFileSync("ast.json", JSON.stringify(ast, null, 2));
+    console.log("Parse tree saved to ast.json");
 }
 
 parseText(`
 <div class='randomClass'>
-        <p class={{variable}}>variable: {{variable}}</p>
+        <p class={{varBean}}>variable in class: {{varBean}}</p>
         <button onClick={{handleClick()}}>Click me</button>
         <NestedComponent/>
         <AnotherNestedComponent>
