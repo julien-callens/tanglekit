@@ -2,97 +2,44 @@ lexer grammar JSBLexer;
 
 WS: [ \t\r\n]+ -> skip ;
 
-IMPORT_OPEN: '<import>' -> pushMode(IMPORT) ;
-PROPS_OPEN: '<props>' -> pushMode(PROPS) ;
-CODE_OPEN: '<code>' -> pushMode(CODE) ;
+EMBEDDED_OPEN: LBRACE LBRACE;
+EMBEDDED_CLOSE: RBRACE RBRACE -> pushMode(CONTENT);
 
-TAG_OPEN: '<' -> pushMode(TAG) ;
-VAR_OPEN: '{{' -> pushMode(VARIABLE) ;
-ID: [a-zA-Z_][a-zA-Z0-9_-]* ;
+FUNC_ARGS_OPEN: LPAREN;
+FUNC_ARGS_CLOSE: RPAREN;
+FUNC_ARGS_SEPARATOR: COMMA;
 
-TEXT: ( ~[<{] | '{' ~'{' )+ ;
+INT: [0-9]+;
+BOOL: 'true' | 'false';
+STRING_OPEN: STRING_WRAPPER -> pushMode(STRING);
 
-fragment INT : [0-9]+ ;
-fragment LETTER : [a-zA-Z] ;
-fragment SPACE: ' ' ;
-fragment EQUALS: '=' ;
-fragment STATEMENT_END: ';' ;
-fragment LET: 'let' ;
-fragment CONST: 'const' ;
-fragment QUOTE: ['] ;
+NAME: LETTER (LETTER | NUMBER)*;
 
-mode PROPS;
+EQUALS: '=';
+fragment STRING_WRAPPER: QUOTE | DOUBLE_QUOTE;
+fragment LBRACE: '{';
+fragment RBRACE: '}';
+fragment LPAREN: '(';
+fragment RPAREN: ')';
+fragment COMMA: ',';
+fragment SEMICOLON: ';';
+fragment QUOTE: '\'';
+fragment DOUBLE_QUOTE: '"';
+fragment NUMBER: [0-9]+;
+fragment LETTER: [a-zA-Z];
 
-    PROP_ID: (LET | CONST) -> pushMode(VARIABLE) ;
-
-    PROPS_WS: WS -> skip ;
-    PROPS_CLOSE: '</props>' -> popMode ;
-
-mode IMPORT;
-
-    FROM: 'from' ;
-    IMPORT_ID: LETTER+ ;
-    IMPORT_PATH: QUOTE .*? QUOTE ;
-    IMPORT_STATEMENT_END: STATEMENT_END ;
-
-    IMPORT_WS: WS -> skip ;
-    IMPORT_CLOSE: '</import>' -> popMode ;
-
-mode CODE;
-
-    LINE_COMMENT: '//' ~[\r\n]* ;
-
-    VAR_DECLARATION: (LET | CONST) -> pushMode(VARIABLE) ;
-    FUNC_DECLARATION: 'function' -> pushMode(FUNCTION) ;
-
-     CODE_WS: WS -> skip ;
-     CODE_CLOSE: '</code>' -> popMode ;
-
-mode TAG;
-
-    TAG_CLOSE: '>' -> popMode ;
-    TAG_SLASH_CLOSE: '/>' -> popMode ;
-    ATT_EQUALS  : '=' ;
-    TAG_SLASH   : '/' ;
-    TAG_WS: WS -> skip ;
-
-    TAG_NAME: ID ;
-
-    ATT_OPEN: QUOTE -> pushMode(ATTRIBUTE) ;
-    ATT_VAR_OPEN: VAR_OPEN -> pushMode(VARIABLE) ;
-
-mode ATTRIBUTE;
-
-    ATT_VALUE: ID;
-    ATT_SEPARATOR: SPACE ;
-    ATT_CLOSE: QUOTE -> popMode ;
-
-mode VARIABLE;
-
-    VAR_NAME: ID ;
-    VAR_CLOSE: '}}' -> popMode ;
-
-    VAR_INT: [0-9]+ ;
-    STRING_OPEN: QUOTE -> pushMode(STRING) ;
-
-    LPAREN: '(' ;
-    RPAREN: ')' ;
-    COMMA: ',' ;
-
-    VAR_EQUALS: EQUALS ;
-
-    VAR_WS: WS -> skip ;
-    VAR_END: STATEMENT_END -> popMode ;
+TAG_OPEN: '<' ;
+TAG_CLOSE: '>' -> pushMode(CONTENT);
+SLASH: '/';
+TAG_SLASH_CLOSE: SLASH TAG_CLOSE;
 
 mode STRING;
 
-    STRING_CONTENT: ~[']* ;
-    STRING_CLOSE: QUOTE -> popMode ;
+    STRING_CONTENT: ~['"]* ;
+    STRING_CLOSE: STRING_OPEN -> popMode ;
 
-mode FUNCTION;
+mode CONTENT;
 
-    FUNC_NAME: LETTER+ ;
-    FUNC_ARGS_OPEN: '(' -> pushMode(VARIABLE) ;
-
-    FUNC_WS: WS -> skip ;
-    FUNC_ARGS_CLOSE: ')' -> popMode ;
+     POP_TAG: (TAG_OPEN | TAG_CLOSE | TAG_SLASH_CLOSE) -> popMode;
+     POP_EMBEDDED: (EMBEDDED_OPEN | EMBEDDED_CLOSE) -> popMode;
+     TEXT: ~[<{]+ ;

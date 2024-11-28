@@ -1,120 +1,97 @@
-grammar JSBSyntax;
+parser grammar JSBSyntax;
+
+options {
+    tokenVocab = JSBOldLexer;
+}
 
 document
-    : propsDeclaration?
-      codeDeclaration?
-      contentDeclaration?
-    ;
-
-propsDeclaration
-    : '<props>' propsContent '</props>'
-    ;
-
-codeDeclaration
-    : '<code>' codeContent '</code>'
-    ;
-
-contentDeclaration
-    : element+
-    ;
-
-propsContent
-    : variableDeclaration?
-    ;
-
-codeContent
-    : (variableDeclaration
-      | functionDeclaration
-      | importDeclaration
-      | LINE_COMMENT
-      )*
-    ;
-
-variableDeclaration
-    : variableKind ID '=' expression ';'
-    ;
-
-functionDeclaration
-    : 'export'? 'function' functionCall functionContent
+    :  importDeclaration?
+       propsDeclaration?
+       codeDeclaration?
+       elementsDeclaration
     ;
 
 importDeclaration
-    : 'import' ID 'from' STRING ';'
+    : IMPORT_OPEN importContent* IMPORT_CLOSE
     ;
 
-variableKind
-    : 'let'
-    | 'const'
+importContent
+    : IMPORT_ID FROM IMPORT_PATH IMPORT_STATEMENT_END
     ;
 
-functionCall
-    : ID '(' functionArgs? ')'
+propsDeclaration
+    : PROPS_OPEN propsContent* PROPS_CLOSE
     ;
 
-functionArgs
-    : expression (',' expression)*
+propsContent
+    : variableIdentifier VAR_NAME EQUALS expression STATEMENT_END
     ;
 
-functionContent
-    : BRACE_OPEN functionContentBody BRACE_CLOSE
+variableIdentifier
+    : LET
+    | CONST
     ;
 
-functionContentBody
-    : (statement | ANY_CHAR_NO_BRACE)*
+codeDeclaration
+    : CODE_OPEN codeStatement* CODE_CLOSE
     ;
 
-statement
-    : variableDeclaration
+codeStatement
+    : variableIdentifier
     | functionDeclaration
     | importDeclaration
-    | expressionStatement
-    | ifStatement
     | LINE_COMMENT
     ;
 
-expressionStatement
-    : expression ';'
+functionDeclaration
+    : FUNC_DECLARATION functionCall
     ;
 
-ifStatement
-    : 'if' '(' expression ')' statement ('else' statement)?
+functionCall
+    : FUNC_NAME FUNC_ARGS_OPEN functionArgs? FUNC_ARGS_CLOSE
     ;
 
-element
-    : '<' ID attribute* '>' elementContent* '</' ID '>'
-    | '<' ID attribute* '/>'
-    | TEXT
+elementsDeclaration
+    : TAG_OPEN TAG_NAME elementAttribute* (TAG_CLOSE content TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE | TAG_SLASH_CLOSE)
     ;
 
-elementContent
-    : (element
-    | TEXT)+
+content
+    : (elementsDeclaration
+    | elementInsert
+    | TEXT)*
     ;
 
-attribute
-    : ID '=' STRING
-    | ID '=' expressionInBraces
+elementAttribute
+    : TAG_NAME ATT_EQUALS (attributeInsert | elementInsert)
     ;
 
-expressionInBraces
-    : '{{' expression '}}'
+attributeInsert
+    : ATT_OPEN ATT_VALUE (ATT_SEPARATOR ATT_VALUE)* ATT_CLOSE
+    ;
+
+elementInsert
+    : (VAR_OPEN | ATT_VAR_OPEN) elementInsertContent VAR_CLOSE
+    ;
+
+elementInsertContent
+    : (varFunction | VAR_NAME)*
+    ;
+
+varFunction
+    : VAR_NAME LPAREN functionArgs? RPAREN
+    ;
+
+functionArgs
+    : expression (COMMA expression)*
     ;
 
 expression
-    : expression ('===' | '==' | '!=' | '<' | '>' | '<=' | '>=') expression
-    | expression ('+' | '-' | '*' | '/' | '%') expression
-    | '(' expression ')'
-    | STRING
-    | ID
-    | functionCall
+    : INT
+    | varString
+    | varFunction
+    | VAR_NAME
     ;
 
-LINE_COMMENT : '//' ~[\r\n]* ;
-ID  : [a-zA-Z_][a-zA-Z0-9_-]* ;
-STRING : '\'' .*? '\'' ;
-TEXT: [^<]+ ;
-WS  : [ \t\r\n]+ -> skip ;
-
-BRACE_OPEN: '{' ;
-BRACE_CLOSE: '}' ;
-ANY_CHAR_NO_BRACE: ~[{}] ;
+varString
+    : STRING_OPEN STRING_CONTENT* STRING_CLOSE
+    ;

@@ -5,97 +5,50 @@ options {
 }
 
 document
-    :  importDeclaration?
-       propsDeclaration?
-       codeDeclaration?
-       elementsDeclaration
-    ;
-
-importDeclaration
-    : IMPORT_OPEN importContent* IMPORT_CLOSE
-    ;
-
-importContent
-    : IMPORT_ID FROM IMPORT_PATH IMPORT_STATEMENT_END
-    ;
-
-propsDeclaration
-    : PROPS_OPEN propsContent* PROPS_CLOSE
-    ;
-
-propsContent
-    : variableDeclaration
-    ;
-
-codeDeclaration
-    : CODE_OPEN codeStatement* CODE_CLOSE
-    ;
-
-codeStatement
-    : variableDeclaration
-    | functionDeclaration
-    | importDeclaration
-    | LINE_COMMENT
-    ;
-
-functionDeclaration
-    : FUNC_DECLARATION functionCall
-    ;
-
-functionCall
-    : FUNC_NAME FUNC_ARGS_OPEN functionArgs? FUNC_ARGS_CLOSE
+    : elementsDeclaration
     ;
 
 elementsDeclaration
-    : TAG_OPEN TAG_NAME elementAttribute* (TAG_CLOSE content TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE | TAG_SLASH_CLOSE)
+    : (POP_TAG | TAG_OPEN) NAME elementAttribute* (TAG_CLOSE content (POP_TAG | TAG_OPEN) SLASH NAME TAG_CLOSE | TAG_SLASH_CLOSE)
     ;
 
 content
-    : (elementsDeclaration
-    | elementInsert
-    | TEXT)*
+    : (elementsDeclaration | embeddedStatement | textContent)*
     ;
 
 elementAttribute
-    : TAG_NAME ATT_EQUALS (attributeInsert | elementInsert)
+    : NAME EQUALS (embeddedStatement | stringType)
     ;
 
-attributeInsert
-    : ATT_OPEN ATT_VALUE (ATT_SEPARATOR ATT_VALUE)* ATT_CLOSE
+embeddedStatement
+    : (POP_EMBEDDED | EMBEDDED_OPEN) embeddedExpression EMBEDDED_CLOSE
     ;
 
-elementInsert
-    : (VAR_OPEN | ATT_VAR_OPEN) elementInsertContent VAR_CLOSE
+
+embeddedExpression
+    : functionCall
+    | variableTypes
+    | NAME
     ;
 
-elementInsertContent
-    : (varFunction | VAR_NAME)*
-    ;
-
-varFunction
-    : VAR_NAME LPAREN functionArgs? RPAREN
+functionCall
+    : NAME FUNC_ARGS_OPEN functionArgs? FUNC_ARGS_CLOSE
     ;
 
 functionArgs
-    : expression (COMMA expression)*
+    : embeddedExpression (FUNC_ARGS_SEPARATOR embeddedExpression)*
     ;
 
-expression
-    : VAR_INT
-    | varString
-    | varFunction
-    | VAR_NAME
+variableTypes
+    : INT
+    | stringType
+    | BOOL
     ;
 
-variableDeclaration
-    : variableKind VAR_NAME VAR_EQUALS expression VAR_END
+stringType
+    : STRING_OPEN STRING_CONTENT STRING_CLOSE
     ;
 
-varString
-    : STRING_OPEN STRING_CONTENT* STRING_CLOSE
-    ;
-
-variableKind
-    : PROP_ID
-    | VAR_DECLARATION
+textContent
+    : TEXT
     ;
