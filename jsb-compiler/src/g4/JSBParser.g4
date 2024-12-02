@@ -5,11 +5,59 @@ options {
 }
 
 document
-    : elementsDeclaration
+    : importDeclaration?
+      propsDeclaration?
+      codeDeclaration?
+      elementsDeclaration
+    ;
+
+importDeclaration
+    : IMPORT_OPEN importStatement* IMPORT_CLOSE
+    ;
+
+importStatement
+    : IMPORT_ID FROM IMPORT_PATH_OPEN STRING_CONTENT STRING_CLOSE IMPORT_STATEMENT_END
+    ;
+
+propsDeclaration
+    : PROPS_OPEN propsContent PROPS_CLOSE
+    ;
+
+propsContent
+    : (VAR_DEF NAME EQUALS statement STATEMENT_END)*
+    ;
+
+codeDeclaration
+    : CODE_OPEN codeContent* CODE_CLOSE
+    ;
+
+codeContent
+    :
+    commentLine
+    | functionDeclaration
+    | ifStatement
+    | (VAR_DEF NAME EQUALS statement STATEMENT_END)
+    ;
+
+statement
+    : functionCall
+    | variableTypes
+    ;
+
+commentLine
+    : COMMENT_START COMMENT_CONTENT
+    ;
+
+functionDeclaration
+    : FUNCTION_START NAME ARGS_OPEN functionArgs? ARGS_CLOSE CODE_BLOCK_OPEN codeContent* CODE_BLOCK_CLOSE
+    ;
+
+ifStatement
+    : IF_START expression ARGS_CLOSE CODE_BLOCK_OPEN codeContent* CODE_BLOCK_CLOSE
     ;
 
 elementsDeclaration
-    : (POP_TAG | TAG_OPEN) NAME elementAttribute* (TAG_CLOSE content (POP_TAG | TAG_OPEN) SLASH NAME TAG_CLOSE | TAG_SLASH_CLOSE)
+    : (TAG_POP | TAG_OPEN) NAME elementAttribute* (TAG_CLOSE content (TAG_POP | TAG_OPEN) SLASH NAME TAG_CLOSE | TAG_SLASH_CLOSE)
     ;
 
 content
@@ -21,22 +69,21 @@ elementAttribute
     ;
 
 embeddedStatement
-    : (POP_EMBEDDED | EMBEDDED_OPEN) embeddedExpression EMBEDDED_CLOSE
+    : (EMBEDDED_POP | EMBEDDED_OPEN) expression EMBEDDED_CLOSE
     ;
 
-
-embeddedExpression
+expression
     : functionCall
     | variableTypes
     | NAME
     ;
 
 functionCall
-    : NAME FUNC_ARGS_OPEN functionArgs? FUNC_ARGS_CLOSE
+    : NAME ARGS_OPEN functionArgs? ARGS_CLOSE
     ;
 
 functionArgs
-    : embeddedExpression (FUNC_ARGS_SEPARATOR embeddedExpression)*
+    : expression (FUNC_ARGS_SEPARATOR expression)*
     ;
 
 variableTypes

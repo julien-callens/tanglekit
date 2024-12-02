@@ -1,39 +1,36 @@
 import JSBParserVisitor from "./generated/JSBParserVisitor.js";
-import antlr4 from 'antlr4';
 import JSBLexer from "./generated/JSBLexer.js";
 
 export class JSBVisitor extends JSBParserVisitor {
     visitDocument(ctx) {
         return {
             type: "document",
-            props: ctx.propsDeclaration() ? this.visit(ctx.propsDeclaration()) : null,
-            code: ctx.codeDeclaration() ? this.visit(ctx.codeDeclaration()) : null,
-            elements: this.visit(ctx.elementsDeclaration()),
+            // props: ctx.propsDeclaration() ? this.visit(ctx.propsDeclaration()) : null,
+            // code: ctx.codeDeclaration() ? this.visit(ctx.codeDeclaration()) : null,
+            elements: ctx.elementsDeclaration() ? this.visit(ctx.elementsDeclaration()) : null,
         };
     }
 
     visitPropsDeclaration(ctx) {
         return {
             type: "propsDeclaration",
-            content: ctx.getText(),
+            content: ctx ? ctx.getText() : null,
         };
     }
 
     visitCodeDeclaration(ctx) {
         return {
             type: "codeDeclaration",
-            content: ctx.getText(),
+            content: ctx ? ctx.getText() : null,
         };
     }
 
     visitElementsDeclaration(ctx) {
-        const tagName = ctx.TAG_NAME(0).getText();
-        const attributes = ctx.elementAttribute().map(attr => this.visit(attr));
+        const tagName = ctx.NAME(0)?.getText() ?? null;
+        const attributes = ctx.elementAttribute()?.map(attr => this.visit(attr)) ?? [];
 
         const isSelfClosing = ctx.TAG_SLASH_CLOSE() !== null;
-        const children = !isSelfClosing && ctx.content()
-            ? this.visit(ctx.content())
-            : [];
+        const children = !isSelfClosing && ctx.content() ? this.visit(ctx.content()) : [];
 
         return {
             type: "element",
@@ -45,18 +42,14 @@ export class JSBVisitor extends JSBParserVisitor {
     }
 
     visitContent(ctx) {
-        return ctx.children.map(child => {
-            if (child.children) {
-                return this.visit(child);
-            } else {
-                return this.visitTerminal(child);
-            }
-        }).filter(node => node !== null && node !== undefined);
+        return ctx?.children
+            ?.map(child => (child.children ? this.visit(child) : this.visitTerminal(child)))
+            ?.filter(node => node !== null && node !== undefined) ?? [];
     }
 
     visitElementAttribute(ctx) {
-        const name = ctx.TAG_NAME().getText();
-        const value = this.visit(ctx.getChild(2)); // attributeInsert or elementInsert
+        const name = ctx.TAG_NAME()?.getText() ?? null;
+        const value = ctx.getChild(2) ? this.visit(ctx.getChild(2)) : null;
 
         return {
             type: "attribute",
@@ -66,7 +59,7 @@ export class JSBVisitor extends JSBParserVisitor {
     }
 
     visitAttributeInsert(ctx) {
-        const values = ctx.ATT_VALUE().map(token => token.getText());
+        const values = ctx.ATT_VALUE()?.map(token => token.getText()) ?? [];
         return {
             type: "attributeValue",
             values,
@@ -74,7 +67,7 @@ export class JSBVisitor extends JSBParserVisitor {
     }
 
     visitElementInsert(ctx) {
-        const content = this.visit(ctx.elementInsertContent());
+        const content = ctx.elementInsertContent() ? this.visit(ctx.elementInsertContent()) : [];
         return {
             type: "elementInsert",
             content,
@@ -82,17 +75,13 @@ export class JSBVisitor extends JSBParserVisitor {
     }
 
     visitElementInsertContent(ctx) {
-        return ctx.children.map(child => {
-            if (child.children) {
-                return this.visit(child);
-            } else {
-                return this.visitTerminal(child);
-            }
-        }).filter(node => node !== null && node !== undefined);
+        return ctx?.children
+            ?.map(child => (child.children ? this.visit(child) : this.visitTerminal(child)))
+            ?.filter(node => node !== null && node !== undefined) ?? [];
     }
 
     visitVarFunction(ctx) {
-        const functionName = ctx.VAR_NAME().getText();
+        const functionName = ctx.VAR_NAME()?.getText() ?? null;
         const args = ctx.functionArgs() ? this.visit(ctx.functionArgs()) : [];
         return {
             type: "varFunction",
@@ -102,18 +91,19 @@ export class JSBVisitor extends JSBParserVisitor {
     }
 
     visitFunctionArgs(ctx) {
-        return ctx.expression().map(expr => this.visit(expr));
+        return ctx.expression()?.map(expr => this.visit(expr)) ?? [];
     }
 
     visitExpression(ctx) {
         if (ctx.VAR_NAME()) {
             return {
                 type: "variable",
-                name: ctx.VAR_NAME().getText(),
+                name: ctx.VAR_NAME()?.getText(),
             };
-        } else {
+        } else if (ctx.varFunction()) {
             return this.visit(ctx.varFunction());
         }
+        return null;
     }
 
     visitTerminal(node) {
