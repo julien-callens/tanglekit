@@ -1,18 +1,15 @@
-let test = 'balls';
-let testing = 'benas';
 function createFragment(ctx) {
-const div = document.createElement('div');
-div.setAttribute('class', 'test');
-div.setAttribute('bean', 'bean');
-const YaaxcRhf = document.createElement('p');
-YaaxcRhf.innerHTML += test;
-div.appendChild(YaaxcRhf);
-const wNCFWiGp = document.createElement('p');
-wNCFWiGp.innerHTML += testing;
-div.appendChild(wNCFWiGp);
-div.innerHTML += 'test';
+    const div = document.createElement('div')
+    div.setAttribute('class', '$.attributes[attr].content.value}')
+    const SQXvAKlT = document.createElement('p')
+    SQXvAKlT.innerHTML += test
+    div.appendChild(SQXvAKlT)
+    const aIngHxcu = document.createElement('p')
+    aIngHxcu.innerHTML += testing
+    div.appendChild(aIngHxcu)
+    div.innerHTML += 'test'
 
-return div;
+    return div
 }
-const ctx = { test, testing };
-document.body.appendChild(createFragment(ctx));
+const ctx = { variable, function, imports }
+document.body.appendChild(createFragment(ctx))

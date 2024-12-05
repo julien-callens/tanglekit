@@ -1,0 +1,11 @@
+{
+  "lineWidth": 80,
+    "indentWidth": 4,
+  "typescript": {
+    "quoteStyle": "preferSingle",
+    "semiColons": "asi"
+  },
+  "plugins": [
+    "https://plugins.dprint.dev/typescript-0.93.3.wasm"
+  ]
+}

@@ -3,35 +3,39 @@ import htmlTags from "html-tags";
 const generateName = createVariableNameGenerator();
 
 export function generateJS(ast) {
-    const variableContext = {};
-    const functionContext = {};
-    const componentContext = {};
     let output = "";
+    let ctx = {
+        variable: [],
+        function: [],
+        imports: [],
+    };
 
     const {imports, props, code, elements} = ast;
 
-    updateContext(props, code, variableContext);
-    output += formatContext(variableContext, functionContext);
+    ctx = updateContext(props, code, ctx);
+    output += formatContext(ctx);
 
     output += `function createFragment(ctx) {\n`;
 
+    let {tagName, attributes, children} = elements;
+
     if (elements) {
-        if (!isValidElement(elements.tagName)) {
+        if (!isValidElement(tagName)) {
             return;
         }
 
-        if (isComponent(elements.tagName, componentContext)) {
-            const component = componentScope[elements.tagName];
+        if (isComponent(tagName, ctx)) {
+            const component = ctx[tagName];
             console.log(component);
         }
 
-        let element = `const ${elements.tagName} = document.createElement('${elements.tagName}');\n`;
+        let element = `const ${tagName} = document.createElement('${tagName}');\n`;
 
-        for (const attr in elements.attributes) {
-            element += `${elements.tagName}.setAttribute('${elements.attributes[attr].name}', '${elements.attributes[attr].value.value}');\n`;
+        for (const attr in attributes) {
+            element += `${tagName}.setAttribute('${attributes[attr].name}', '$.attributes[attr].content.value}');\n`;
         }
 
-        for (const child of elements.children) {
+        for (const child of children) {
             if (child.type === "element") {
 
                 const elementName = generateName();
@@ -41,48 +45,71 @@ export function generateJS(ast) {
                     child.tagName,
                     child.attributes,
                     child.children,
-                    componentContext
+                    ctx
                 );
 
-                element += `${elements.tagName}.appendChild(${elementName});\n`;
+                element += `${tagName}.appendChild(${elementName});\n`;
             } else if (child.type === "text") {
-                element += `${elements.tagName}.innerHTML += '${child.value}';\n`;
+                element += `${tagName}.innerHTML += '${child.value}';\n`;
             }
         }
 
         output += element;
     }
 
-    let outputEnd = seedContext(variableContext);
+    let outputEnd = seedContext(ctx);
 
     outputEnd += `document.body.appendChild(createFragment(ctx));\n`;
 
-    return `${output}\nreturn ${elements.tagName};\n}\n${outputEnd}`;
+    return `${output}\nreturn ${tagName};\n}\n${outputEnd}`;
 }
 
-function updateContext(props, code, variableContext) {
+function updateContext(props, code, ctx) {
     if (props) {
         props.forEach((prop) => {
-            variableContext[prop.variable] = prop.value;
+            let variable = prop.assigned;
+            let type = variable.type;
+
+            if (type === "string") {
+                variable = `${variable.value}`;
+            }
+
+            ctx["variable"] = [
+                ...ctx["variable"],
+                {
+                    name: prop.name,
+                    type: type,
+                    value: variable,
+                }
+            ]
         });
     }
 
     if (code) {
         code.forEach((content) => {
             if (content.type === "variableDeclaration") {
-                let variable = content.value.value;
+                let variable = content.assigned;
+                let type = variable.type;
 
-                if (content.value.type === "string") {
-                    variable = `'${variable}'`;
+                if (type === "string") {
+                    variable = `${variable.value}`;
                 }
 
-                variableContext[content.name] = {
-                    type: "variable",
-                    value: variable,
-                };
+                ctx["variable"] = [
+                    ...ctx["variable"],
+                    {
+                        name: content.name,
+                        type: type,
+                        value: variable,
+                    }
+                ]
             }
         });
     }
+
+    console.log(JSON.stringify(ctx, null, 4));
+
+    return ctx;
 }
 
 function createElement(name, tag, attributes, children, ctx) {
@@ -91,7 +118,7 @@ function createElement(name, tag, attributes, children, ctx) {
     }
 
     if (isComponent(tag, ctx)) {
-        const component = componentScope[tag];
+        const component = ctx[tag];
         console.log(component);
     }
 
@@ -124,18 +151,18 @@ function createElement(name, tag, attributes, children, ctx) {
     return element;
 }
 
-function formatContext(variableContext, functionContext) {
+function formatContext(ctx) {
     let context = '';
 
-    for (const variable in variableContext) {
-        if (variableContext[variable].type === 'variable') {
-            context += `let ${variable} = ${variableContext[variable].value};\n`;
+    for (const variable in ctx) {
+        if (ctx[variable].type === 'variable') {
+            context += `let ${variable} = ${ctx[variable].value};\n`;
         }
     }
 
-    for (const func in functionContext) {
-        context += functionContext[func].value;
-    }
+    // for (const func in ctx) {
+    //     context += ctx[func].value;
+    // }
 
     return context;
 }

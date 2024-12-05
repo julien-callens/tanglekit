@@ -68,12 +68,12 @@ export class JSBVisitor extends JSBParserVisitor {
     visitVariableDeclaration(ctx) {
         const varDef = ctx.VAR_DEF().getText().trim();
         const name = ctx.NAME().getText().trim();
-        const value = this.visit(ctx.statement());
+        const assigned = this.visit(ctx.statement());
         return {
             type: "variableDeclaration",
             varDef,
             name,
-            value,
+            assigned,
         };
     }
 
@@ -152,16 +152,16 @@ export class JSBVisitor extends JSBParserVisitor {
 
     visitElementAttribute(ctx) {
         const name = ctx.NAME().getText().trim();
-        let value;
+        let content;
         if (ctx.embeddedStatement()) {
-            value = this.visit(ctx.embeddedStatement());
+            content = this.visit(ctx.embeddedStatement());
         } else if (ctx.stringType()) {
-            value = this.visit(ctx.stringType());
+            content = this.visit(ctx.stringType());
         }
         return {
             type: "attribute",
             name,
-            value,
+            content,
         };
     }
 

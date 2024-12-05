@@ -7,7 +7,7 @@
       "type": "variableDeclaration",
       "varDef": "let",
       "name": "test",
-      "value": {
+      "assigned": {
         "type": "string",
         "value": "balls"
       }
@@ -16,7 +16,7 @@
       "type": "variableDeclaration",
       "varDef": "let",
       "name": "testing",
-      "value": {
+      "assigned": {
         "type": "string",
         "value": "benas"
       }
@@ -29,17 +29,9 @@
       {
         "type": "attribute",
         "name": "class",
-        "value": {
+        "content": {
           "type": "string",
           "value": "test"
-        }
-      },
-      {
-        "type": "attribute",
-        "name": "bean",
-        "value": {
-          "type": "string",
-          "value": "bean"
         }
       }
     ],
