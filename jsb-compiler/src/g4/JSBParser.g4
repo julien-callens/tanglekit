@@ -24,7 +24,7 @@ propsDeclaration
     ;
 
 propsContent
-    : (VAR_DEF NAME EQUALS statement STATEMENT_END)*
+    : variableDeclaration*
     ;
 
 codeDeclaration
@@ -36,7 +36,11 @@ codeContent
     commentLine
     | functionDeclaration
     | ifStatement
-    | (VAR_DEF NAME EQUALS statement STATEMENT_END)
+    | variableDeclaration
+    ;
+
+variableDeclaration
+    : VAR_DEF NAME EQUALS statement STATEMENT_END
     ;
 
 statement

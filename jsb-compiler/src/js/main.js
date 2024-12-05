@@ -3,6 +3,7 @@ import fs from "fs";
 import {JSBVisitor} from "./JSBVisitor.js";
 import JSBParser from "./generated/JSBParser.js";
 import JSBLexer from "./generated/JSBLexer.js";
+import {generateJS} from "./JSGenerator.js";
 
 function parseText(input) {
     const chars = new antlr4.InputStream(input);
@@ -18,17 +19,21 @@ function parseText(input) {
 
     fs.writeFileSync("ast.json", JSON.stringify(ast, null, 2));
     console.log("Parse tree saved to ast.json");
+
+    const js = generateJS(ast);
+    fs.writeFileSync("output.js", js);
+    console.log("Generated JS saved to output.js");
+    console.log(js);
 }
 
 parseText(`
-<div class='randomClass'>
-        <p class={{varBean}}>variable in class: {{varBean}}</p>
-        <button onClick={{handleClick()}}>Click me</button>
-        <NestedComponent/>
-        <AnotherNestedComponent>
-            content of AnotherNestedComponent
-        </AnotherNestedComponent>
-
-       {{children}}
+<code>
+    let test = 'balls';
+    let testing = 'benas';
+</code>
+<div class="test">
+    <p>{{test}}</p>
+    <p>{{testing}}</p>
+    test
 </div>
 `);

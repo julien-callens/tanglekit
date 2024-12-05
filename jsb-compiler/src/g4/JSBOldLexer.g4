@@ -11,7 +11,6 @@ CODE_CLOSE: '</code>' ;
 TAG_OPEN: '<' -> pushMode(TAG) ;
 VAR_OPEN: '{{' -> pushMode(ATT_VARIABLE) ;
 
-
 LINE_COMMENT: '//' ~[\r\n]* ;
 
 FUNC_DECLARATION: 'function' -> pushMode(FUNCTION) ;
@@ -28,7 +27,7 @@ QUOTE: ['] ;
 VAR_NAME: LETTER+ ;
 ID: [a-zA-Z_][a-zA-Z0-9_-]* ;
 STRING_OPEN: QUOTE -> pushMode(STRING) ;
-//TEXT: ( ~[<{] | '{' ~'{' )+ ;
+
 mode IMPORT;
 
     FROM: 'from' ;

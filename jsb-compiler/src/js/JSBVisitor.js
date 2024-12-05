@@ -1,34 +1,125 @@
 import JSBParserVisitor from "./generated/JSBParserVisitor.js";
 import JSBLexer from "./generated/JSBLexer.js";
+import JSBParser from "./generated/JSBParser.js";
 
 export class JSBVisitor extends JSBParserVisitor {
     visitDocument(ctx) {
         return {
             type: "document",
-            // props: ctx.propsDeclaration() ? this.visit(ctx.propsDeclaration()) : null,
-            // code: ctx.codeDeclaration() ? this.visit(ctx.codeDeclaration()) : null,
+            imports: ctx.importDeclaration() ? this.visit(ctx.importDeclaration()) : null,
+            props: ctx.propsDeclaration() ? this.visit(ctx.propsDeclaration()) : null,
+            code: ctx.codeDeclaration() ? this.visit(ctx.codeDeclaration()) : null,
             elements: ctx.elementsDeclaration() ? this.visit(ctx.elementsDeclaration()) : null,
         };
     }
 
+    visitImportDeclaration(ctx) {
+        const statements = ctx.importStatement().map(stmt => this.visit(stmt));
+        return {
+            type: "importDeclaration",
+            statements,
+        };
+    }
+
+    visitImportStatement(ctx) {
+        const importId = ctx.IMPORT_ID().getText().trim();
+        const path = ctx.STRING_CONTENT().getText().trim();
+        return {
+            type: "importStatement",
+            importId,
+            path,
+        };
+    }
+
     visitPropsDeclaration(ctx) {
+        const content = ctx.propsContent() ? this.visit(ctx.propsContent()) : null;
         return {
             type: "propsDeclaration",
-            content: ctx ? ctx.getText() : null,
+            content,
+        };
+    }
+
+    visitPropsContent(ctx) {
+        const variables = ctx.variableDeclaration().map(varDecl => this.visit(varDecl));
+        return {
+            type: "propsContent",
+            variables,
         };
     }
 
     visitCodeDeclaration(ctx) {
+        return ctx.codeContent().map(content => this.visit(content));
+    }
+
+    visitCodeContent(ctx) {
+        if (ctx.commentLine()) {
+            return this.visit(ctx.commentLine());
+        } else if (ctx.functionDeclaration()) {
+            return this.visit(ctx.functionDeclaration());
+        } else if (ctx.ifStatement()) {
+            return this.visit(ctx.ifStatement());
+        } else if (ctx.variableDeclaration()) {
+            return this.visit(ctx.variableDeclaration());
+        } else {
+            return null;
+        }
+    }
+
+    visitVariableDeclaration(ctx) {
+        const varDef = ctx.VAR_DEF().getText().trim();
+        const name = ctx.NAME().getText().trim();
+        const value = this.visit(ctx.statement());
         return {
-            type: "codeDeclaration",
-            content: ctx ? ctx.getText() : null,
+            type: "variableDeclaration",
+            varDef,
+            name,
+            value,
+        };
+    }
+
+    visitStatement(ctx) {
+        if (ctx.functionCall()) {
+            return this.visit(ctx.functionCall());
+        } else if (ctx.variableTypes()) {
+            return this.visit(ctx.variableTypes());
+        } else {
+            return null;
+        }
+    }
+
+    visitCommentLine(ctx) {
+        const content = ctx.COMMENT_CONTENT().getText().trim();
+        return {
+            type: "commentLine",
+            content,
+        };
+    }
+
+    visitFunctionDeclaration(ctx) {
+        const name = ctx.NAME().getText().trim();
+        const args = ctx.functionArgs() ? this.visit(ctx.functionArgs()) : [];
+        const body = ctx.codeContent().map(content => this.visit(content));
+        return {
+            type: "functionDeclaration",
+            name,
+            args,
+            body,
+        };
+    }
+
+    visitIfStatement(ctx) {
+        const condition = this.visit(ctx.expression());
+        const body = ctx.codeContent().map(content => this.visit(content));
+        return {
+            type: "ifStatement",
+            condition,
+            body,
         };
     }
 
     visitElementsDeclaration(ctx) {
-        const tagName = ctx.NAME(0)?.getText() ?? null;
+        const tagName = ctx.NAME(0)?.getText().trim() ?? null;
         const attributes = ctx.elementAttribute()?.map(attr => this.visit(attr)) ?? [];
-
         const isSelfClosing = ctx.TAG_SLASH_CLOSE() !== null;
         const children = !isSelfClosing && ctx.content() ? this.visit(ctx.content()) : [];
 
@@ -41,16 +132,32 @@ export class JSBVisitor extends JSBParserVisitor {
         };
     }
 
+
     visitContent(ctx) {
-        return ctx?.children
-            ?.map(child => (child.children ? this.visit(child) : this.visitTerminal(child)))
-            ?.filter(node => node !== null && node !== undefined) ?? [];
+        const contents = [];
+        for (let child of ctx.children) {
+            if (child instanceof JSBParser.ElementsDeclarationContext) {
+                contents.push(this.visitElementsDeclaration(child));
+            } else if (child instanceof JSBParser.EmbeddedStatementContext) {
+                contents.push(this.visitEmbeddedStatement(child));
+            } else if (child instanceof JSBParser.TextContentContext) {
+                let textContent = this.visitTextContent(child);
+                if (textContent) {
+                    contents.push(textContent);
+                }
+            }
+        }
+        return contents;
     }
 
     visitElementAttribute(ctx) {
-        const name = ctx.TAG_NAME()?.getText() ?? null;
-        const value = ctx.getChild(2) ? this.visit(ctx.getChild(2)) : null;
-
+        const name = ctx.NAME().getText().trim();
+        let value;
+        if (ctx.embeddedStatement()) {
+            value = this.visit(ctx.embeddedStatement());
+        } else if (ctx.stringType()) {
+            value = this.visit(ctx.stringType());
+        }
         return {
             type: "attribute",
             name,
@@ -58,50 +165,76 @@ export class JSBVisitor extends JSBParserVisitor {
         };
     }
 
-    visitAttributeInsert(ctx) {
-        const values = ctx.ATT_VALUE()?.map(token => token.getText()) ?? [];
+    visitEmbeddedStatement(ctx) {
+        const expression = this.visit(ctx.expression());
         return {
-            type: "attributeValue",
-            values,
+            type: "embeddedStatement",
+            expression,
         };
     }
 
-    visitElementInsert(ctx) {
-        const content = ctx.elementInsertContent() ? this.visit(ctx.elementInsertContent()) : [];
-        return {
-            type: "elementInsert",
-            content,
-        };
+    visitExpression(ctx) {
+        if (ctx.functionCall()) {
+            return this.visit(ctx.functionCall());
+        } else if (ctx.variableTypes()) {
+            return this.visit(ctx.variableTypes());
+        } else if (ctx.NAME()) {
+            return {
+                type: "name",
+                value: ctx.NAME().getText().trim(),
+            };
+        } else {
+            return null;
+        }
     }
 
-    visitElementInsertContent(ctx) {
-        return ctx?.children
-            ?.map(child => (child.children ? this.visit(child) : this.visitTerminal(child)))
-            ?.filter(node => node !== null && node !== undefined) ?? [];
-    }
-
-    visitVarFunction(ctx) {
-        const functionName = ctx.VAR_NAME()?.getText() ?? null;
+    visitFunctionCall(ctx) {
+        const name = ctx.NAME().getText().trim();
         const args = ctx.functionArgs() ? this.visit(ctx.functionArgs()) : [];
         return {
-            type: "varFunction",
-            functionName,
+            type: "functionCall",
+            name,
             args,
         };
     }
 
     visitFunctionArgs(ctx) {
-        return ctx.expression()?.map(expr => this.visit(expr)) ?? [];
+        return ctx.expression().map(expr => this.visit(expr));
     }
 
-    visitExpression(ctx) {
-        if (ctx.VAR_NAME()) {
+    visitVariableTypes(ctx) {
+        if (ctx.INT()) {
             return {
-                type: "variable",
-                name: ctx.VAR_NAME()?.getText(),
+                type: "int",
+                value: parseInt(ctx.INT().getText().trim(), 10),
             };
-        } else if (ctx.varFunction()) {
-            return this.visit(ctx.varFunction());
+        } else if (ctx.BOOL()) {
+            return {
+                type: "bool",
+                value: ctx.BOOL().getText().trim() === 'true',
+            };
+        } else if (ctx.stringType()) {
+            return this.visit(ctx.stringType());
+        } else {
+            return null;
+        }
+    }
+
+    visitStringType(ctx) {
+        const value = ctx.STRING_CONTENT().getText().trim();
+        return {
+            type: "string",
+            value,
+        };
+    }
+
+    visitTextContent(ctx) {
+        let text = ctx.TEXT().getText().trim();
+        if (text) {
+            return {
+                type: "text",
+                value: text,
+            }
         }
         return null;
     }
@@ -110,17 +243,21 @@ export class JSBVisitor extends JSBParserVisitor {
         const tokenType = node.symbol.type;
         switch (tokenType) {
             case JSBLexer.TEXT:
+                let text = node.getText().trim();
+                if (text) {
+                    return {
+                        type: "text",
+                        value: text,
+                    };
+                }
+                return null;
+            case JSBLexer.NAME:
                 return {
-                    type: "text",
-                    value: node.getText(),
+                    type: "name",
+                    value: node.getText().trim(),
                 };
-            case JSBLexer.VAR_NAME:
-                return {
-                    type: "variable",
-                    name: node.getText(),
-                };
-            case JSBLexer.ATT_VALUE:
-                return node.getText();
+            case JSBLexer.STRING_CONTENT:
+                return node.getText().trim();
             default:
                 return null;
         }

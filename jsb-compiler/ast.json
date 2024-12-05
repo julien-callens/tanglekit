@@ -1,7 +1,27 @@
 {
   "type": "document",
+  "imports": null,
   "props": null,
-  "code": null,
+  "code": [
+    {
+      "type": "variableDeclaration",
+      "varDef": "let",
+      "name": "test",
+      "value": {
+        "type": "string",
+        "value": "balls"
+      }
+    },
+    {
+      "type": "variableDeclaration",
+      "varDef": "let",
+      "name": "testing",
+      "value": {
+        "type": "string",
+        "value": "benas"
+      }
+    }
+  ],
   "elements": {
     "type": "element",
     "tagName": "div",
@@ -10,10 +30,16 @@
         "type": "attribute",
         "name": "class",
         "value": {
-          "type": "attributeValue",
-          "values": [
-            "randomClass"
-          ]
+          "type": "string",
+          "value": "test"
+        }
+      },
+      {
+        "type": "attribute",
+        "name": "bean",
+        "value": {
+          "type": "string",
+          "value": "bean"
         }
       }
     ],
@@ -21,96 +47,36 @@
       {
         "type": "element",
         "tagName": "p",
-        "attributes": [
-          {
-            "type": "attribute",
-            "name": "class",
-            "value": {
-              "type": "elementInsert",
-              "content": [
-                {
-                  "type": "variable",
-                  "name": "varBean"
-                }
-              ]
-            }
-          }
-        ],
-        "children": [
-          {
-            "type": "text",
-            "value": "variable in class: "
-          },
-          {
-            "type": "elementInsert",
-            "content": [
-              {
-                "type": "variable",
-                "name": "varBean"
-              }
-            ]
-          },
-          {
-            "type": "text",
-            "value": "}"
-          }
-        ],
-        "selfClosing": false
-      },
-      {
-        "type": "element",
-        "tagName": "button",
-        "attributes": [
-          {
-            "type": "attribute",
-            "name": "onClick",
-            "value": {
-              "type": "elementInsert",
-              "content": [
-                {
-                  "type": "varFunction",
-                  "functionName": "handleClick",
-                  "args": []
-                }
-              ]
-            }
-          }
-        ],
-        "children": [
-          {
-            "type": "text",
-            "value": "Click me"
-          }
-        ],
-        "selfClosing": false
-      },
-      {
-        "type": "element",
-        "tagName": "NestedComponent",
-        "attributes": [],
-        "children": [],
-        "selfClosing": true
-      },
-      {
-        "type": "element",
-        "tagName": "AnotherNestedComponent",
         "attributes": [],
         "children": [
           {
-            "type": "text",
-            "value": "\n            content of AnotherNestedComponent\n        "
+            "type": "embeddedStatement",
+            "expression": {
+              "type": "name",
+              "value": "test"
+            }
           }
         ],
         "selfClosing": false
       },
       {
-        "type": "elementInsert",
-        "content": [
+        "type": "element",
+        "tagName": "p",
+        "attributes": [],
+        "children": [
           {
-            "type": "variable",
-            "name": "children"
+            "type": "embeddedStatement",
+            "expression": {
+              "type": "name",
+              "value": "testing"
+            }
           }
-        ]
+        ],
+        "selfClosing": false
+      },
+      {
+        "type": "text",
+        "value": "test"
       }
     ],
     "selfClosing": false
