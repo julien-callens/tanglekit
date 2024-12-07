@@ -5,14 +5,17 @@ const generateName = createVariableNameGenerator();
 export function generateJS(ast) {
     let output = "";
     let ctx = {
-        variable: [],
-        function: [],
+        variables: [],
+        functions: [],
         imports: [],
     };
 
+    console.log(`AST: ${JSON.stringify(ast, null, 4)}`);
+
     const {imports, props, code, elements} = ast;
 
-    ctx = updateContext(props, code, ctx);
+    ctx = updateContext(imports, props, code, ctx);
+
     output += formatContext(ctx);
 
     output += `function createFragment(ctx) {\n`;
@@ -32,7 +35,7 @@ export function generateJS(ast) {
         let element = `const ${tagName} = document.createElement('${tagName}');\n`;
 
         for (const attr in attributes) {
-            element += `${tagName}.setAttribute('${attributes[attr].name}', '$.attributes[attr].content.value}');\n`;
+            element += `${tagName}.setAttribute('${attributes[attr].name}', '${attributes[attr].content.value}');\n`;
         }
 
         for (const child of children) {
@@ -64,7 +67,7 @@ export function generateJS(ast) {
     return `${output}\nreturn ${tagName};\n}\n${outputEnd}`;
 }
 
-function updateContext(props, code, ctx) {
+function updateContext(imports, props, code, ctx) {
     if (props) {
         props.forEach((prop) => {
             let variable = prop.assigned;
@@ -74,8 +77,8 @@ function updateContext(props, code, ctx) {
                 variable = `${variable.value}`;
             }
 
-            ctx["variable"] = [
-                ...ctx["variable"],
+            ctx["variables"] = [
+                ...ctx["variables"],
                 {
                     name: prop.name,
                     type: type,
@@ -95,8 +98,8 @@ function updateContext(props, code, ctx) {
                     variable = `${variable.value}`;
                 }
 
-                ctx["variable"] = [
-                    ...ctx["variable"],
+                ctx["variables"] = [
+                    ...ctx["variables"],
                     {
                         name: content.name,
                         type: type,
@@ -107,7 +110,7 @@ function updateContext(props, code, ctx) {
         });
     }
 
-    console.log(JSON.stringify(ctx, null, 4));
+    console.log(`\x1b[32mContext:\x1b[0m ${JSON.stringify(ctx, null, 4)}`);
 
     return ctx;
 }
@@ -153,23 +156,21 @@ function createElement(name, tag, attributes, children, ctx) {
 
 function formatContext(ctx) {
     let context = '';
+    const variables = ctx.variables;
 
-    for (const variable in ctx) {
-        if (ctx[variable].type === 'variable') {
-            context += `let ${variable} = ${ctx[variable].value};\n`;
+    for (const variable of variables) {
+        if (variable.type === 'string') {
+            context += `let ${variable.name} = "${variable.value}";\n`;
         }
     }
-
-    // for (const func in ctx) {
-    //     context += ctx[func].value;
-    // }
 
     return context;
 }
 
-function seedContext(variableContext) {
-    const variables = Object.keys(variableContext);
-    return `const ctx = { ${variables.join(', ')} };\n`;
+function seedContext(ctx) {
+    const variables = ctx.variables.map(variable => variable.name).join(', ');
+    const functions = ctx.functions.map(func => func.name).join(', ');
+    return `const ctx = { ${variables} ${functions ? `, ${functions}` : ''} }\n`;
 }
 
 function isValidElement(tagName) {

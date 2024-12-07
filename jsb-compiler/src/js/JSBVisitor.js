@@ -5,7 +5,6 @@ import JSBParser from "./generated/JSBParser.js";
 export class JSBVisitor extends JSBParserVisitor {
     visitDocument(ctx) {
         return {
-            type: "document",
             imports: ctx.importDeclaration() ? this.visit(ctx.importDeclaration()) : null,
             props: ctx.propsDeclaration() ? this.visit(ctx.propsDeclaration()) : null,
             code: ctx.codeDeclaration() ? this.visit(ctx.codeDeclaration()) : null,
