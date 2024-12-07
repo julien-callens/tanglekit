@@ -4,7 +4,6 @@ import {JSBVisitor} from "./JSBVisitor.js";
 import JSBParser from "./generated/JSBParser.js";
 import JSBLexer from "./generated/JSBLexer.js";
 import {generateJS} from "./JSGenerator.js";
-import {exec} from "child_process";
 
 function parseText(input) {
     const chars = new antlr4.InputStream(input);
@@ -23,17 +22,6 @@ function parseText(input) {
 
     const js = generateJS(ast);
     fs.writeFileSync("output.js", js);
-    exec(`dprint fmt ${"output.js"}`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error formatting file: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            console.error(`Formatting stderr: ${stderr}`);
-            return;
-        }
-        console.log(`File formatted successfully: ${stdout}`);
-    });
     console.log("Generated JS saved to output.js");
     console.log(js);
 }
