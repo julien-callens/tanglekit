@@ -4,6 +4,7 @@ WS: [ \t\r\n]+ -> skip ;
 
 EMBEDDED_OPEN: LBRACE LBRACE;
 EMBEDDED_CLOSE: RBRACE RBRACE;
+EMBEDDED_CONTENT_CLOSE: EMBEDDED_CLOSE -> pushMode(CONTENT);
 
 INT: [0-9]+;
 BOOL: 'true' | 'false';
@@ -48,8 +49,7 @@ PROPS_CLOSE: '</props>' ;
 CODE_OPEN: '<code>' ;
 CODE_CLOSE: '</code>' ;
 
-TAG_OPEN: '<' ;
-TAG_CLOSE: '>' -> pushMode(CONTENT);
+TAG_OPEN: '<' -> pushMode(TAG);
 COMMENT_START: '//' -> pushMode(COMMENT);
 SLASH: '/';
 
@@ -63,6 +63,28 @@ mode IMPORT;
     IMPORT_WS: WS -> skip ;
     IMPORT_CLOSE: '</import>' -> popMode ;
 
+mode TAG;
+        TAG_WS: WS -> skip ;
+        TAG_CLOSE: '>' -> popMode ;
+
+        TAG_NAME: NAME -> type(NAME), pushMode(ATTRIBUTE) ;
+        TAG_SLASH: SLASH -> popMode ;
+
+mode ATTRIBUTE;
+
+    ATTRIBUTE_WS: WS -> skip ;
+    ATTRIBUTE_CLOSE: '>' -> type(TAG_CLOSE), popMode, pushMode(CONTENT) ;
+
+    ATTRIBUTE_NAME: NAME -> type(NAME) ;
+    ATTRIBUTE_EQUALS: EQUALS -> type(EQUALS) ;
+    ATTRIBUTE_VALUE: STRING_OPEN -> type(STRING_OPEN), pushMode(STRING) ;
+    ATTRIBUTE_VALUE_DYNAMIC: EMBEDDED_OPEN -> type(EMBEDDED_OPEN), pushMode(EMBEDDED) ;
+
+mode EMBEDDED;
+
+    EMBEDDED_NAME: NAME -> type(NAME) ;
+    CLOSE: EMBEDDED_CLOSE -> type(EMBEDDED_CLOSE), popMode ;
+
 mode STRING;
 
     STRING_CONTENT: ~['"]* ;
@@ -70,9 +92,9 @@ mode STRING;
 
 mode CONTENT;
 
-     TAG_POP: (TAG_OPEN | TAG_CLOSE | TAG_SLASH_CLOSE) -> popMode;
-     EMBEDDED_POP: (EMBEDDED_OPEN | EMBEDDED_CLOSE) -> popMode;
      TEXT: ~[<{]+ ;
+     EMBEDDED_POP: EMBEDDED_OPEN -> type(EMBEDDED_OPEN), pushMode(EMBEDDED) ;
+     TAG_POP: TAG_OPEN -> type(TAG_OPEN), popMode, pushMode(TAG);
 
 mode COMMENT;
 

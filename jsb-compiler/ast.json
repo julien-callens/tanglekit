@@ -37,15 +37,39 @@
     "children": [
       {
         "type": "element",
-        "tagName": "p",
+        "tagName": "div",
         "attributes": [],
         "children": [
           {
-            "type": "embeddedStatement",
-            "expression": {
-              "type": "name",
-              "value": "test"
-            }
+            "type": "element",
+            "tagName": "p",
+            "attributes": [],
+            "children": [
+              {
+                "type": "embeddedStatement",
+                "expression": {
+                  "type": "name",
+                  "value": "test"
+                }
+              },
+              {
+                "type": "text",
+                "value": "tyets"
+              }
+            ],
+            "selfClosing": false
+          },
+          {
+            "type": "element",
+            "tagName": "p",
+            "attributes": [],
+            "children": [
+              {
+                "type": "text",
+                "value": "test"
+              }
+            ],
+            "selfClosing": false
           }
         ],
         "selfClosing": false

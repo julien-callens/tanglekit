@@ -61,7 +61,9 @@ ifStatement
     ;
 
 elementsDeclaration
-    : (TAG_POP | TAG_OPEN) NAME elementAttribute* (TAG_CLOSE content (TAG_POP | TAG_OPEN) SLASH NAME TAG_CLOSE | TAG_SLASH_CLOSE)
+    : TAG_OPEN NAME elementAttribute*
+    (TAG_CLOSE content TAG_OPEN TAG_SLASH NAME TAG_CLOSE
+    | TAG_SLASH_CLOSE)
     ;
 
 content
@@ -73,7 +75,7 @@ elementAttribute
     ;
 
 embeddedStatement
-    : (EMBEDDED_POP | EMBEDDED_OPEN) expression EMBEDDED_CLOSE
+    : EMBEDDED_OPEN expression EMBEDDED_CLOSE
     ;
 
 expression

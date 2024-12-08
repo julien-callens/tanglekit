@@ -32,7 +32,7 @@ parseText(`
     let testing = 'benas';
 </code>
 <div class="test">
-    <p>{{test}}</p>
+    <div><p>{{test}}tyets</p><p>test</p></div>
     <p>{{testing}}</p>
     test
 </div>

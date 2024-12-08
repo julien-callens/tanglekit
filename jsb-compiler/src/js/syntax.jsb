@@ -24,10 +24,14 @@
 <div class='randomClass'>
         <p class={{variable}}>variable: {{variable}}</p>
         <button onClick={{handleClick()}}>Click me</button>
-        <NestedComponent/>
-        <AnotherNestedComponent>
-            content of AnotherNestedComponent
-        </AnotherNestedComponent>
+        {{ if (test === 'balls') }}
+            <NestedComponent/>
+        {{ else if (test === 'benas') }}
+            <AnotherNestedComponent>
+                content of AnotherNestedComponent
+            </AnotherNestedComponent>
+        {{ else }}
+            {{children}}
+        {{ /if }}
 
-       {{children}}
 </div>

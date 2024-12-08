@@ -1,5 +1,4 @@
 import JSBParserVisitor from "./generated/JSBParserVisitor.js";
-import JSBLexer from "./generated/JSBLexer.js";
 import JSBParser from "./generated/JSBParser.js";
 
 export class JSBVisitor extends JSBParserVisitor {
@@ -31,7 +30,7 @@ export class JSBVisitor extends JSBParserVisitor {
     }
 
     visitPropsDeclaration(ctx) {
-        const content = ctx.propsContent() ? this.visit(ctx.propsContent()) : null;
+        const content = ctx.propsContent() ? this.visit(ctx.propsContent()) : [];
         return {
             type: "propsDeclaration",
             content,
@@ -59,9 +58,8 @@ export class JSBVisitor extends JSBParserVisitor {
             return this.visit(ctx.ifStatement());
         } else if (ctx.variableDeclaration()) {
             return this.visit(ctx.variableDeclaration());
-        } else {
-            return null;
         }
+        return null;
     }
 
     visitVariableDeclaration(ctx) {
@@ -81,9 +79,8 @@ export class JSBVisitor extends JSBParserVisitor {
             return this.visit(ctx.functionCall());
         } else if (ctx.variableTypes()) {
             return this.visit(ctx.variableTypes());
-        } else {
-            return null;
         }
+        return null;
     }
 
     visitCommentLine(ctx) {
@@ -131,32 +128,24 @@ export class JSBVisitor extends JSBParserVisitor {
         };
     }
 
-
     visitContent(ctx) {
-        const contents = [];
-        for (let child of ctx.children) {
+        return ctx.children.map(child => {
             if (child instanceof JSBParser.ElementsDeclarationContext) {
-                contents.push(this.visitElementsDeclaration(child));
+                return this.visitElementsDeclaration(child);
             } else if (child instanceof JSBParser.EmbeddedStatementContext) {
-                contents.push(this.visitEmbeddedStatement(child));
+                return this.visitEmbeddedStatement(child);
             } else if (child instanceof JSBParser.TextContentContext) {
-                let textContent = this.visitTextContent(child);
-                if (textContent) {
-                    contents.push(textContent);
-                }
+                return this.visitTextContent(child);
             }
-        }
-        return contents;
+            return null;
+        }).filter(content => content !== null);
     }
 
     visitElementAttribute(ctx) {
         const name = ctx.NAME().getText().trim();
-        let content;
-        if (ctx.embeddedStatement()) {
-            content = this.visit(ctx.embeddedStatement());
-        } else if (ctx.stringType()) {
-            content = this.visit(ctx.stringType());
-        }
+        const content = ctx.embeddedStatement()
+            ? this.visit(ctx.embeddedStatement())
+            : this.visit(ctx.stringType());
         return {
             type: "attribute",
             name,
@@ -182,9 +171,8 @@ export class JSBVisitor extends JSBParserVisitor {
                 type: "name",
                 value: ctx.NAME().getText().trim(),
             };
-        } else {
-            return null;
         }
+        return null;
     }
 
     visitFunctionCall(ctx) {
@@ -214,9 +202,8 @@ export class JSBVisitor extends JSBParserVisitor {
             };
         } else if (ctx.stringType()) {
             return this.visit(ctx.stringType());
-        } else {
-            return null;
         }
+        return null;
     }
 
     visitStringType(ctx) {
@@ -228,37 +215,7 @@ export class JSBVisitor extends JSBParserVisitor {
     }
 
     visitTextContent(ctx) {
-        let text = ctx.TEXT().getText().trim();
-        if (text) {
-            return {
-                type: "text",
-                value: text,
-            }
-        }
-        return null;
-    }
-
-    visitTerminal(node) {
-        const tokenType = node.symbol.type;
-        switch (tokenType) {
-            case JSBLexer.TEXT:
-                let text = node.getText().trim();
-                if (text) {
-                    return {
-                        type: "text",
-                        value: text,
-                    };
-                }
-                return null;
-            case JSBLexer.NAME:
-                return {
-                    type: "name",
-                    value: node.getText().trim(),
-                };
-            case JSBLexer.STRING_CONTENT:
-                return node.getText().trim();
-            default:
-                return null;
-        }
+        const text = ctx.TEXT().getText().trim();
+        return text ? { type: "text", value: text } : null;
     }
 }

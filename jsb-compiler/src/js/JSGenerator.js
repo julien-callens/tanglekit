@@ -67,6 +67,44 @@ export function generateJS(ast) {
     return `${output}\nreturn ${tagName};\n}\n${outputEnd}`;
 }
 
+function createElement(name, tag, attributes, children, ctx) {
+    if (!isValidElement(tag)) {
+        return '';
+    }
+
+    if (isComponent(tag, ctx)) {
+        const component = ctx[tag];
+        console.log(component);
+    }
+
+    let element = `const ${name} = document.createElement('${tag}');\n`;
+
+    for (const child of children) {
+        if (child.type === "element") {
+            const elementName = generateName();
+
+            element += createElement(
+                elementName,
+                child.tagName,
+                child.props,
+                child.children,
+                ctx
+            );
+
+            element += `${name}.appendChild(${elementName});\n`;
+        } else if (child.type === "text") {
+            element += `${name}.innerHTML += '${child.value}';\n`;
+        } else if (child.type === "embeddedStatement") {
+            const expression = child.expression;
+            if (expression.type === "name") {
+                element += `${name}.innerHTML += ${expression.value};\n`;
+            }
+        }
+    }
+
+    return element;
+}
+
 function updateContext(imports, props, code, ctx) {
     if (props) {
         props.forEach((prop) => {
@@ -113,45 +151,6 @@ function updateContext(imports, props, code, ctx) {
     console.log(`\x1b[32mContext:\x1b[0m ${JSON.stringify(ctx, null, 4)}`);
 
     return ctx;
-}
-
-function createElement(name, tag, attributes, children, ctx) {
-    if (!isValidElement(tag)) {
-        return '';
-    }
-
-    if (isComponent(tag, ctx)) {
-        const component = ctx[tag];
-        console.log(component);
-    }
-
-    let element = `const ${name} = document.createElement('${tag}');\n`;
-
-    for (const child of children) {
-        if (child.type === "element") {
-            const elementName = generateName();
-
-            element += createElement(
-                elementName,
-                child.tagName,
-                child.props,
-                child.children,
-                generateName,
-                ctx
-            );
-
-            element += `${name}.appendChild(${elementName});\n`;
-        } else if (child.type === "text") {
-            element += `${name}.innerHTML += '${child.value}';\n`;
-        } else if (child.type === "embeddedStatement") {
-            const expression = child.expression;
-            if (expression.type === "name") {
-                element += `${name}.innerHTML += ${expression.value};\n`;
-            }
-        }
-    }
-
-    return element;
 }
 
 function formatContext(ctx) {
