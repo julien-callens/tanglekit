@@ -1,18 +1,18 @@
 import antlr4 from "antlr4";
 import fs from "fs";
-import {JSBVisitor} from "./JSBVisitor.js";
-import JSBParser from "./generated/JSBParser.js";
-import JSBLexer from "./generated/JSBLexer.js";
+import BasicJSBParser from "./generated/BasicJSBParser.js";
+import BasicJSBLexer from "./generated/BasicJSBLexer.js";
 import {generateJS} from "./JSGenerator.js";
+import {BasicJSBVisitor} from "./basic/BasicJSBVisitor.js";
 
 function parseText(input) {
     const chars = new antlr4.InputStream(input);
-    const lexer = new JSBLexer(chars);
+    const lexer = new BasicJSBLexer(chars);
     const tokens = new antlr4.CommonTokenStream(lexer);
-    const parser = new JSBParser(tokens);
+    const parser = new BasicJSBParser(tokens);
     const tree = parser.document();
 
-    const visitor = new JSBVisitor();
+    const visitor = new BasicJSBVisitor();
     const ast = visitor.visit(tree);
 
     console.log(JSON.stringify(ast, null, 2))
@@ -28,8 +28,10 @@ function parseText(input) {
 
 parseText(`
 <code>
-    let test = 'balls';
-    let testing = 'benas';
+    let test = 1;
+    let testing = true;
+    let test2 = 'test';
+    
 </code>
 <div class="test">
     <div><p>{{test}}tyets</p><p>test</p></div>

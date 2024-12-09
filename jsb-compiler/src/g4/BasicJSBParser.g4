@@ -1,7 +1,7 @@
-parser grammar JSBParser;
+parser grammar BasicJSBParser;
 
 options {
-    tokenVocab = JSBLexer;
+    tokenVocab = BasicJSBLexer;
 }
 
 document
@@ -64,13 +64,12 @@ ifStatement
 
 elementsDeclaration
     : TAG_OPEN NAME elementAttribute*
-    ( TAG_SLASH TAG_CLOSE
-    | TAG_CLOSE content TAG_OPEN TAG_SLASH NAME TAG_CLOSE)
+    ( TAG_CLOSE content TAG_OPEN TAG_SLASH NAME TAG_CLOSE
+    | TAG_SLASH TAG_CLOSE)
     ;
 
 content
     : (elementsDeclaration
-    | embeddedIf
     | embeddedStatement
     | textContent)*
     ;
@@ -99,18 +98,6 @@ expression
     : functionCall
     | variableTypes
     | NAME
-    ;
-
-embeddedIf
-    : EMBEDDED_OPEN embeddedIfStatement EMBEDDED_CLOSE
-    content?
-    ((EMBEDDED_OPEN ELSE embeddedIfStatement? EMBEDDED_CLOSE)
-    content?)*
-    EMBEDDED_OPEN END_IF EMBEDDED_CLOSE
-    ;
-
-embeddedIfStatement
-    : IF LPAREN ARGS_CLOSE
     ;
 
 variableTypes

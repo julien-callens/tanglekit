@@ -19,6 +19,8 @@
         }
         console.log('Button clicked');
     }
+
+    handleClick("benas", "balls");
 </code>
 
 <div class='randomClass'>

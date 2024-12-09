@@ -203,7 +203,7 @@ function seedContext(ctx) {
 }
 
 function isValidElement(tagName) {
-    const isValid = htmlTags.includes(tagName);
+    const isValid = htmlTags[tagName] !== undefined;
 
     if (!isValid) {
         console.error(`Invalid element: ${tagName}`);

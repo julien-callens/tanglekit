@@ -66,11 +66,14 @@ export class JSBVisitor extends JSBParserVisitor {
         const varDef = ctx.VAR_DEF().getText().trim();
         const name = ctx.NAME().getText().trim();
         const assigned = this.visit(ctx.statement());
+        const assignedType = assigned.type;
+        const value = assigned.value;
         return {
             type: "variableDeclaration",
             varDef,
             name,
-            assigned,
+            assignedType,
+            value,
         };
     }
 

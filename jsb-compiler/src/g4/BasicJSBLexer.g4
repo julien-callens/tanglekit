@@ -1,4 +1,4 @@
-lexer grammar JSBLexer;
+lexer grammar BasicJSBLexer;
 
 FUNCTION: 'function ';
 ENDIF: '/if';
@@ -93,6 +93,8 @@ mode CODE;
 
 mode STATEMENT;
 
+        INT_STATEMENT: INT -> type(INT) ;
+        BOOLEAN_STATEMENT: BOOL -> type(BOOL) ;
         FUNCTION_STATEMENT_CALL: FUNC_START -> type(FUNC_START), pushMode(FUNCTION_CALL_ARGS) ;
         STRING_START: STRING_WRAPPER -> type(STRING_OPEN), pushMode(STRING) ;
         NAME_STATEMENT: NAME -> type(NAME) ;
@@ -125,6 +127,7 @@ mode TAG;
         TAG_WS: WS -> skip ;
         TAG_CLOSE: '>' -> popMode ;
 
+        TAG_CLOSING: TAG_SLASH -> type(TAG_SLASH), popMode ;
         TAG_NAME: NAME -> type(NAME), pushMode(ATTRIBUTE) ;
 
 mode ATTRIBUTE;

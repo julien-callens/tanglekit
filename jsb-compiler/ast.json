@@ -6,19 +6,22 @@
       "type": "variableDeclaration",
       "varDef": "let",
       "name": "test",
-      "assigned": {
-        "type": "string",
-        "value": "balls"
-      }
+      "assignedType": "int",
+      "value": 1
     },
     {
       "type": "variableDeclaration",
       "varDef": "let",
       "name": "testing",
-      "assigned": {
-        "type": "string",
-        "value": "benas"
-      }
+      "assignedType": "bool",
+      "value": true
+    },
+    {
+      "type": "variableDeclaration",
+      "varDef": "let",
+      "name": "test2",
+      "assignedType": "string",
+      "value": "test"
     }
   ],
   "elements": {
@@ -57,7 +60,7 @@
                 "value": "tyets"
               }
             ],
-            "selfClosing": false
+            "selfClosing": true
           },
           {
             "type": "element",
@@ -69,10 +72,10 @@
                 "value": "test"
               }
             ],
-            "selfClosing": false
+            "selfClosing": true
           }
         ],
-        "selfClosing": false
+        "selfClosing": true
       },
       {
         "type": "element",
@@ -87,13 +90,13 @@
             }
           }
         ],
-        "selfClosing": false
+        "selfClosing": true
       },
       {
         "type": "text",
-        "value": "test"
+        "value": "\n    test\n"
       }
     ],
-    "selfClosing": false
+    "selfClosing": true
   }
 }
