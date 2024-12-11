@@ -1,4 +1,4 @@
-import htmlTags from "html-tags";
+import {createVariableNameGenerator, isComponent, isValidElement} from "./basic/functions/helperFunctions.js";
 
 const generateName = createVariableNameGenerator();
 
@@ -200,37 +200,4 @@ function seedContext(ctx) {
     const variables = ctx.variables.map(variable => variable.name).join(', ');
     const functions = ctx.functions.map(func => func.name).join(', ');
     return `const ctx = { ${variables} ${functions ? `, ${functions}` : ''} }\n`;
-}
-
-function isValidElement(tagName) {
-    const isValid = htmlTags.includes(tagName);
-
-    if (!isValid) {
-        console.error(`Invalid element: ${tagName}`);
-    }
-
-    return isValid;
-}
-
-function isComponent(tagName, componentContext) {
-    return componentContext.hasOwnProperty(tagName);
-}
-
-function createVariableNameGenerator() {
-    const usedNames = new Set();
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const length = 8;
-
-    return function generateName() {
-        let name;
-        do {
-            name = '';
-            for (let i = 0; i < length; i++) {
-                name += charset.charAt(Math.floor(Math.random() * charset.length));
-            }
-        } while (usedNames.has(name));
-
-        usedNames.add(name);
-        return name;
-    };
 }
