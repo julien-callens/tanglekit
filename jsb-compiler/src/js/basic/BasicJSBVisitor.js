@@ -97,7 +97,7 @@ export class BasicJSBVisitor extends BasicJSBParserVisitor {
                     return this.visitEmbeddedStatement(child);
                 if (child instanceof BasicJSBParser.TextContentContext) {
                     const content = this.visitTextContent(child);
-                    if (content.value) return content;
+                    if (content) return content;
                 }
                 return null;
             })
@@ -110,10 +110,13 @@ export class BasicJSBVisitor extends BasicJSBParserVisitor {
             ? this.visit(ctx.embeddedStatement())
             : this.visit(ctx.stringType());
 
+        const attributeType = attributeContent.type;
+
         return {
             type: "attribute",
             name: attributeName,
-            content: attributeContent,
+            attributeType,
+            content: attributeContent.value || attributeContent.expression,
         };
     }
 
@@ -152,9 +155,13 @@ export class BasicJSBVisitor extends BasicJSBParserVisitor {
     }
 
     visitTextContent(ctx) {
+        const value = ctx.TEXT().getText().replace(/\s+/g, ' ');
+
+        if (value.trim() === "") return null;
+
         return {
             type: "text",
-            value: ctx.TEXT().getText().trim(),
+            value: ctx.TEXT().getText().replace(/\s+/g, ' '),
         };
     }
 }

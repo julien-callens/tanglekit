@@ -4,10 +4,32 @@ import BasicJSBParser from "./generated/BasicJSBParser.js";
 import BasicJSBLexer from "./generated/BasicJSBLexer.js";
 import {generateJS} from "./basic/BasicJSGenerator.js";
 import {BasicJSBVisitor} from "./basic/BasicJSBVisitor.js";
-import {validateImports} from "./basic/functions/componentFunctions.js";
+import {formatProps, validateImports} from "./basic/functions/componentFunctions.js";
 import * as path from "node:path";
 
 const processedFiles = new Set();
+
+function render(filePath) {
+    processJSBFile(filePath);
+    createEntryPoint(filePath);
+}
+
+function createEntryPoint(filePath) {
+    const resolvedFilePath = path.resolve(filePath);
+    const entryPoint = path.resolve(path.dirname(resolvedFilePath), '../out', 'index.js');
+    const baseName = path.basename(resolvedFilePath, '.jsb');
+
+    const ast = JSON.parse(fs.readFileSync(path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.jsb') + '.ast.json'), 'utf-8'));
+    const props = ast.props;
+
+
+    let indexContent = `import ${baseName} from \"./${baseName}.js\";\n\ndocument.body.appendChild(`;
+    indexContent += `${path.basename(resolvedFilePath, '.jsb')}(`;
+    indexContent += `{${formatProps(props, "in")}}`;
+    indexContent += `));`;
+
+    fs.writeFileSync(entryPoint, indexContent);
+}
 
 function processJSBFile(filePath) {
     const resolvedFilePath = path.resolve(filePath);
@@ -30,13 +52,8 @@ function processJSBFile(filePath) {
     const visitor = new BasicJSBVisitor();
     const ast = visitor.visit(tree);
 
-    fs.writeFileSync(
-        path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.jsb') + '.ast.json'),
-        JSON.stringify(ast, null, 4)
-    );
 
     if (ast.imports !== null && ast.imports !== undefined && ast.imports.length > 0) {
-        validateImports(ast.imports, resolvedFilePath);
 
         ast.imports.forEach((imp) => {
             if (path.extname(imp.path) === '.jsb') {
@@ -52,14 +69,20 @@ function processJSBFile(filePath) {
         });
     }
 
+    fs.writeFileSync(
+        path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.jsb') + '.ast.json'),
+        JSON.stringify(ast, null, 4)
+    );
+
+    validateImports(ast.imports, resolvedFilePath);
+
     const js = generateJS(ast, resolvedFilePath);
+
     fs.writeFileSync(
         path.resolve(path.dirname(resolvedFilePath), '../out', path.basename(resolvedFilePath, '.jsb') + '.js'),
         js
     );
-
-
 }
 
 
-processJSBFile("./src/js/basic/examples/basicSyntax.jsb");
+render("./src/js/basic/examples/BasicSyntax.jsb");

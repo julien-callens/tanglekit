@@ -1,25 +1,56 @@
 import {createVariableNameGenerator} from "./functions/helperFunctions.js";
-import {createImports, createProps, validateAndProcessElements} from "./functions/componentFunctions.js";
+import {formatCode, formatImports, formatProps} from "./functions/componentFunctions.js";
+import {elementTransformer} from "./functions/transformer.js";
+import * as path from "node:path";
 
-const generateName = createVariableNameGenerator();
+export const generateName = createVariableNameGenerator();
 
 export function generateJS(ast, filePath) {
-    let output = "";
-    let ctx = {
+    const {imports, props, code, elements} = ast;
+    const componentName = path.basename(filePath, '.jsb');
+    const ctx = {
         variables: [],
         functions: [],
-        imports: [],
+        imports: imports
     };
 
-    const {imports, props, code, elements} = ast;
+    let output = "";
 
-    const parsedImports = createImports(imports, filePath, ctx);
+    output += formatImports(ctx.imports);
 
-    const parsedProps = createProps(props, ctx);
+    output += `export default function ${componentName}({${formatProps(props)}}) {\n`;
 
-    const parsedElements = validateAndProcessElements(elements, imports, ctx);
+    output += formatCode(code);
 
-    return parsedImports + parsedProps + parsedElements;
+    let elementsOutput = "";
+    let handler = elementTransformer[elements.type];
+
+    const firstElementComponent = imports.find((imp) => imp.id === elements.tagName) || null;
+    let name = "";
+
+    if (firstElementComponent) {
+        handler = elementTransformer.component;
+        elementsOutput += handler(elements, firstElementComponent, ctx);
+    } else {
+        name = generateName();
+        if (handler) {
+            elementsOutput += handler(elements, name, ctx);
+        }
+    }
+
+    output += elementsOutput;
+
+    if (props.some((prop) => prop.name === "children")) {
+        output += "children.forEach((child) => {\n";
+        output += `${firstElementComponent?.id || name}.appendChild(child());\n`;
+        output += "});\n";
+    }
+
+    output += `\nreturn ${firstElementComponent?.id || name};\n`
+
+    output += "}\n";
+
+    return output;
 }
 
 

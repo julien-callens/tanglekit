@@ -9,4 +9,4 @@
     let prop2;
 </props>
 
-<h2>I am a nested component!</h2>
+<h2>I am a nested component! {{prop2}}</h2>

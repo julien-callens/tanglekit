@@ -1,3 +1,32 @@
-.test {
-    border: 1px solid red;
+.balls {
+    color: rgba(0, 0, 0, 0.9);
+
+    border-radius: 1rem;
+    background: #65adff;
+    width: fit-content;
+    padding: .5rem;
+
+    cursor: pointer;
+
+    transition: box-shadow 0.3s;
+
+    &:hover {
+        box-shadow: 0 0 1rem rgba(0, 0, 0, 0.5);
+    }
+}
+
+.randomClass {
+    font: .875rem 'Poppins', sans-serif;
+
+    color: rgba(255, 255, 255, 0.95);
+
+    background: #676767;
+    border-radius: 1rem;
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.5);
+    padding: 1rem;
+}
+
+h2 {
+    font: 1.25rem 'Poppins', sans-serif;
+    font-weight: 500;
 }

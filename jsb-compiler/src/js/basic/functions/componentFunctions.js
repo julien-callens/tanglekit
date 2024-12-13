@@ -2,19 +2,6 @@ import * as path from "node:path";
 import fs from "fs";
 import {ValidationError} from "../classes/ValidationError.js";
 
-export function createImports(imports, filePath, ctx) {
-    let output = "";
-    for (const imp of imports) {
-        if (imp.type === "component") {
-            output += `import ${imp.id} from '${imp.path.replace('.jsb', '.js')}';\n`;
-            ctx.imports.push(imp.id);
-        } else if (imp.type === "styleImport") {
-            output += `import '${imp.path}';\n`;
-        }
-    }
-    return output;
-}
-
 export function validateImports(imports, filePath) {
     imports.forEach((imp) => {
         if (imp.type === "component") {
@@ -26,7 +13,7 @@ export function validateImports(imports, filePath) {
                 )
             );
 
-            imp.expectedProps = componentAST.props?.map((prop) => ({
+            imp.props = componentAST.props?.map((prop) => ({
                 name: prop.name,
                 required: prop.value === null || prop.value === undefined,
                 defaultValue: prop.value,
@@ -35,37 +22,27 @@ export function validateImports(imports, filePath) {
     });
 }
 
-
-export function validateAndProcessElements(elements, imports, ctx) {
+export function formatImports(imports) {
     let output = "";
-
-    function processElement(element) {
-        if (element.type === "element" && imports.some((imp) => imp.id === element.tagName)) {
-            const component = imports.find((imp) => imp.id === element.tagName);
-
-            validatePropsForElement(element, component);
-
-            output += `${component.id}(${JSON.stringify(element.attributes)});\n`;
-        } else if (element.children) {
-            element.children.forEach(processElement);
+    for (const imp of imports) {
+        if (imp.type === "component") {
+            output += `import ${imp.id} from '${imp.path.replace('.jsb', '.js')}';\n`;
+        } else if (imp.type === "styleImport") {
+            output += `import '${imp.path}';\n`;
         }
     }
-
-    if (elements) {
-        processElement(elements);
-    }
-
     return output;
 }
 
-function validatePropsForElement(element, component) {
-    const expectedProps = component.expectedProps || [];
+export function validatePropsForElement(element, component) {
+    const expectedProps = component.props || [];
     const providedProps = element.attributes || [];
 
     const providedNames = providedProps.map((attr) => attr.name);
 
     expectedProps?.forEach((expectedProp) => {
-        if (expectedProp.required && !providedNames.includes(expectedProp.name)) {
+        console.log(`Checking prop ${JSON.stringify(expectedProp, null, 4)}`);
+        if (expectedProp.required && !providedNames.includes(expectedProp.name) && expectedProp.name !== "children") {
             throw new ValidationError(
                 `Missing required prop '${expectedProp.name}' for component '${component.id}'`,
                 `Expected Props: ${JSON.stringify(expectedProps.map((p) => p.name))} Provided Props: ${JSON.stringify(providedNames)}`
@@ -83,56 +60,52 @@ function validatePropsForElement(element, component) {
     });
 }
 
-
-export function createProps(props, ctx) {
-    if (props) {
-        props.forEach((prop) => {
-            const isRequired = prop.value === undefined || prop.value === null;
-
-            ctx.variables.push({
-                name: prop.name,
-                type: prop.assignedType,
-                value: prop.value,
-                required: isRequired,
-            });
-        });
-    }
-
-    let output = "";
-
-    ctx.variables.forEach((variable) => {
-        if (!variable.required && variable.value !== undefined) {
-            let variableDeclaration = `let ${variable.name} = `;
-            if (variable.type === "string") {
-                variableDeclaration += `"${variable.value}";\n`;
+export function formatProps(props, type) {
+    if (props !== null && props !== undefined && props.length > 0) {
+        let propsContent = "";
+        props.forEach((prop, index) => {
+            if (type === "in") {
+                const value = transformValue(prop.content.type, prop.content.value);
+                propsContent += `${prop.name}: ${value}`;
             } else {
-                variableDeclaration += `${variable.value};\n`;
+                propsContent += `${prop.name}`;
             }
-            output += variableDeclaration;
+            if (index < props.length - 1) {
+                propsContent += ", ";
+            }
+        });
+        return propsContent;
+    }
+    return "";
+}
+
+export function formatCode(code) {
+    let output = "";
+    code.forEach((content) => {
+        if (content.type === "variableDeclaration") {
+            output += `${content.varDef} ${content.name} = ${transformValue(content.assignedType, content.value)};\n`;
+        } else if (content.type === "functionDeclaration") {
+            output += `function ${content.name}(${content.args.map((arg) => arg.value).join(", ")}) {\n`;
+            output += `${content.body}\n`;
+            output += "}\n";
         }
     });
-
     return output;
 }
 
-
-export function createCode(code, ctx) {
-    if (code) {
-        code.forEach((content) => {
-            if (content.type === "variableDeclaration") {
-                ctx.variables.push({
-                    def: content.varDef,
-                    name: content.name,
-                    type: content.assignedType,
-                    value: content.value,
-                });
-            } else if (content.type === "functionDeclaration") {
-                ctx.functions.push({
-                    name: content.name,
-                    args: content.args,
-                    body: content.body,
-                });
-            }
-        });
+export function transformValue(type, value, toHTML = false) {
+    switch (type) {
+        case "string":
+        case "text":
+            return `"${value}"`;
+        case "int":
+        case "name":
+        case "variable":
+        case "bool":
+            return toHTML ? `"${value}"` : `${value}`;
+        case "embeddedStatement":
+            return transformValue(value.type, value.value);
+        default:
+            return null;
     }
 }
