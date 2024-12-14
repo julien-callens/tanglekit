@@ -41,7 +41,6 @@ export function validatePropsForElement(element, component) {
     const providedNames = providedProps.map((attr) => attr.name);
 
     expectedProps?.forEach((expectedProp) => {
-        console.log(`Checking prop ${JSON.stringify(expectedProp, null, 4)}`);
         if (expectedProp.required && !providedNames.includes(expectedProp.name) && expectedProp.name !== "children") {
             throw new ValidationError(
                 `Missing required prop '${expectedProp.name}' for component '${component.id}'`,
