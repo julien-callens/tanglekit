@@ -22,7 +22,6 @@ function createEntryPoint(filePath) {
     const ast = JSON.parse(fs.readFileSync(path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.jsb') + '.ast.json'), 'utf-8'));
     const props = ast.props;
 
-
     let indexContent = `import ${baseName} from \"./${baseName}.js\";\n\ndocument.body.appendChild(`;
     indexContent += `${path.basename(resolvedFilePath, '.jsb')}(`;
     indexContent += `{${formatProps(props, "in")}}`;
@@ -84,6 +83,5 @@ function processJSBFile(filePath) {
         js
     );
 }
-
 
 render("./src/js/basic/examples/BasicSyntax.jsb");
