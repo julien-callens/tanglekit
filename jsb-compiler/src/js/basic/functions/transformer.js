@@ -32,6 +32,12 @@ export const elementTransformer = {
                     break;
 
                 case "embeddedStatement":
+                    if (child.expression.value === "children") {
+                        output += `children.forEach((child) => {\n`;
+                        output += `${name}.appendChild(child());\n`;
+                        output += "});\n";
+                        break;
+                    }
                     output += `${name}.innerHTML += ${transformValue(child.expression.type, child.expression.value)};\n`;
                     break;
 

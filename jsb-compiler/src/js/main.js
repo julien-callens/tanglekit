@@ -61,6 +61,7 @@ function processJSBFile(filePath) {
 
                 if (resolvedImportPath === resolvedFilePath) {
                     console.error(`\x1b[31mSelf-referencing import detected in ${resolvedFilePath}: ${imp.path}\x1b[0m`);
+                    ast.imports = ast.imports.filter((i) => i.path !== imp.path);
                     return;
                 }
 

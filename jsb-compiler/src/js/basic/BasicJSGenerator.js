@@ -16,13 +16,12 @@ export function generateJS(ast, filePath) {
 
     let output = "";
 
-    output += formatImports(ctx.imports);
+    output += formatImports(imports);
 
     output += `export default function ${componentName}({${formatProps(props)}}) {\n`;
 
     output += formatCode(code);
 
-    let elementsOutput = "";
     let handler = elementTransformer[elements.type];
 
     const firstElementComponent = imports.find((imp) => imp.id === elements.tagName) || null;
@@ -30,20 +29,12 @@ export function generateJS(ast, filePath) {
 
     if (firstElementComponent) {
         handler = elementTransformer.component;
-        elementsOutput += handler(elements, firstElementComponent, ctx);
+        output += handler(elements, firstElementComponent, ctx);
     } else {
         name = generateName();
         if (handler) {
-            elementsOutput += handler(elements, name, ctx);
+            output += handler(elements, name, ctx);
         }
-    }
-
-    output += elementsOutput;
-
-    if (props.some((prop) => prop.name === "children")) {
-        output += "children.forEach((child) => {\n";
-        output += `${firstElementComponent?.id || name}.appendChild(child());\n`;
-        output += "});\n";
     }
 
     output += `\nreturn ${firstElementComponent?.id || name};\n`
