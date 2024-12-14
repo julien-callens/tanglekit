@@ -1,4 +1,4 @@
-// Generated from C:/Users/julie/WebstormProjects/jsb/jsb-compiler/src/g4/JSBLexer.g4 by ANTLR 4.13.2
+// Generated from C:/Users/julie/WebstormProjects/jsb/jsb-compiler/src/g4/BasicJSBLexer.g4 by ANTLR 4.13.2
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
@@ -9,7 +9,7 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.misc.*;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue", "this-escape"})
-public class JSBLexer extends Lexer {
+public class BasicJSBLexer extends Lexer {
 	static { RuntimeMetaData.checkVersion("4.13.2", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
@@ -114,13 +114,13 @@ public class JSBLexer extends Lexer {
 	}
 
 
-	public JSBLexer(CharStream input) {
+	public BasicJSBLexer(CharStream input) {
 		super(input);
 		_interp = new LexerATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 
 	@Override
-	public String getGrammarFileName() { return "JSBLexer.g4"; }
+	public String getGrammarFileName() { return "BasicJSBLexer.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }

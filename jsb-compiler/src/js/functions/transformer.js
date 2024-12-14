@@ -1,5 +1,5 @@
 import {formatProps, transformValue, validatePropsForElement} from "./componentFunctions.js";
-import {generateName} from "../BasicJSGenerator.js";
+import {generateName} from "../JSGenerator.js";
 
 export const elementTransformer = {
     element: (element, startName, ctx) => {

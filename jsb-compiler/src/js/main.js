@@ -1,10 +1,10 @@
 import antlr4 from "antlr4";
 import fs from "fs";
-import BasicJSBParser from "./generated/BasicJSBParser.js";
-import BasicJSBLexer from "./generated/BasicJSBLexer.js";
-import {generateJS} from "./basic/BasicJSGenerator.js";
-import {BasicJSBVisitor} from "./basic/BasicJSBVisitor.js";
-import {formatProps, validateImports} from "./basic/functions/componentFunctions.js";
+import JSBParser from "./generated/JSBParser.js";
+import JSBLexer from "./generated/JSBLexer.js";
+import {generateJS} from "./JSGenerator.js";
+import {JSBVisitor} from "./JSBVisitor.js";
+import {formatProps, validateImports} from "./functions/componentFunctions.js";
 import * as path from "node:path";
 
 const processedFiles = new Set();
@@ -42,13 +42,13 @@ function processJSBFile(filePath) {
     const input = fs.readFileSync(resolvedFilePath, 'utf-8');
     console.log(`\x1b[32mProcessing:\x1b[0m ${resolvedFilePath}`);
     const chars = new antlr4.InputStream(input);
-    const lexer = new BasicJSBLexer(chars);
+    const lexer = new JSBLexer(chars);
     const tokens = new antlr4.CommonTokenStream(lexer);
-    const parser = new BasicJSBParser(tokens);
+    const parser = new JSBParser(tokens);
 
     const tree = parser.document();
 
-    const visitor = new BasicJSBVisitor();
+    const visitor = new JSBVisitor();
     const ast = visitor.visit(tree);
 
 
@@ -84,4 +84,4 @@ function processJSBFile(filePath) {
     );
 }
 
-render("./src/js/basic/examples/BasicSyntax.jsb");
+render("./src/js/examples/BasicSyntax.jsb");
