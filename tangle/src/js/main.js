@@ -11,7 +11,7 @@ const processedFiles = new Set();
 
 function render(filePath) {
     fs.mkdirSync(path.resolve(path.dirname(filePath), '../out/ast'), {recursive: true});
-    processJSBFile(filePath);
+    processTangleFile(filePath);
     createEntryPoint(filePath);
 }
 
@@ -31,7 +31,7 @@ function createEntryPoint(filePath) {
     fs.writeFileSync(entryPoint, indexContent);
 }
 
-function processJSBFile(filePath) {
+function processTangleFile(filePath) {
     const resolvedFilePath = path.resolve(filePath);
 
     if (processedFiles.has(resolvedFilePath)) {
@@ -53,7 +53,7 @@ function processJSBFile(filePath) {
     const ast = visitor.visit(tree);
 
     fs.writeFileSync(
-        path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.jsb') + '.ast.json'),
+        path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.tngl') + '.ast.json'),
         JSON.stringify(ast, null, 4)
     );
 
@@ -69,7 +69,7 @@ function processJSBFile(filePath) {
                     return;
                 }
 
-                processJSBFile(resolvedImportPath);
+                processTangleFile(resolvedImportPath);
             }
         });
     }
