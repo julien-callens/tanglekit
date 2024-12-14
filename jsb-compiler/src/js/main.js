@@ -10,6 +10,7 @@ import * as path from "node:path";
 const processedFiles = new Set();
 
 function render(filePath) {
+    fs.mkdirSync(path.resolve(path.dirname(filePath), '../out/ast'), {recursive: true});
     processJSBFile(filePath);
     createEntryPoint(filePath);
 }
@@ -51,6 +52,10 @@ function processJSBFile(filePath) {
     const visitor = new TangleVisitor();
     const ast = visitor.visit(tree);
 
+    fs.writeFileSync(
+        path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.jsb') + '.ast.json'),
+        JSON.stringify(ast, null, 4)
+    );
 
     if (ast.imports !== null && ast.imports !== undefined && ast.imports.length > 0) {
 
