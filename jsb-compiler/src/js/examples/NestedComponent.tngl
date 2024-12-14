@@ -1,7 +1,7 @@
 <import>
     "./styles.css";
-    NestedComponent from './NestedComponent.jsb';
-    AnotherNestedComponent from './AnotherNestedComponent.jsb';
+    NestedComponent from './NestedComponent.tngl';
+    AnotherNestedComponent from './AnotherNestedComponent.tngl';
 </import>
 
 <props>

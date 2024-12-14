@@ -1,7 +1,7 @@
-import BasicJSBParserVisitor from "./generated/JSBParserVisitor.js";
-import BasicJSBParser from "./generated/JSBParser.js";
+import TangleParserVisitor from "./generated/TangleParserVisitor.js";
+import TangleParser from "./generated/TangleParser.js";
 
-export class JSBVisitor extends BasicJSBParserVisitor {
+export class TangleVisitor extends TangleParserVisitor {
     visitDocument(ctx) {
         return {
             imports: ctx.importDeclaration() ? this.visit(ctx.importDeclaration()) : [],
@@ -91,11 +91,11 @@ export class JSBVisitor extends BasicJSBParserVisitor {
     visitContent(ctx) {
         return ctx.children
             .map(child => {
-                if (child instanceof BasicJSBParser.ElementsDeclarationContext)
+                if (child instanceof TangleParser.ElementsDeclarationContext)
                     return this.visitElementsDeclaration(child);
-                if (child instanceof BasicJSBParser.EmbeddedStatementContext)
+                if (child instanceof TangleParser.EmbeddedStatementContext)
                     return this.visitEmbeddedStatement(child);
-                if (child instanceof BasicJSBParser.TextContentContext) {
+                if (child instanceof TangleParser.TextContentContext) {
                     const content = this.visitTextContent(child);
                     if (content) return content;
                 }

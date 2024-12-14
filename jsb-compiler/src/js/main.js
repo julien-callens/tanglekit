@@ -1,9 +1,9 @@
 import antlr4 from "antlr4";
 import fs from "fs";
-import JSBParser from "./generated/JSBParser.js";
-import JSBLexer from "./generated/JSBLexer.js";
+import TangleParser from "./generated/TangleParser.js";
+import TangleLexer from "./generated/TangleLexer.js";
 import {generateJS} from "./JSGenerator.js";
-import {JSBVisitor} from "./JSBVisitor.js";
+import {TangleVisitor} from "./TangleVisitor.js";
 import {formatProps, validateImports} from "./functions/componentFunctions.js";
 import * as path from "node:path";
 
@@ -17,13 +17,13 @@ function render(filePath) {
 function createEntryPoint(filePath) {
     const resolvedFilePath = path.resolve(filePath);
     const entryPoint = path.resolve(path.dirname(resolvedFilePath), '../out', 'index.js');
-    const baseName = path.basename(resolvedFilePath, '.jsb');
+    const baseName = path.basename(resolvedFilePath, '.tngl');
 
-    const ast = JSON.parse(fs.readFileSync(path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.jsb') + '.ast.json'), 'utf-8'));
+    const ast = JSON.parse(fs.readFileSync(path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.tngl') + '.ast.json'), 'utf-8'));
     const props = ast.props;
 
     let indexContent = `import ${baseName} from \"./${baseName}.js\";\n\ndocument.body.appendChild(`;
-    indexContent += `${path.basename(resolvedFilePath, '.jsb')}(`;
+    indexContent += `${path.basename(resolvedFilePath, '.tngl')}(`;
     indexContent += `{${formatProps(props, "in")}}`;
     indexContent += `));`;
 
@@ -42,20 +42,20 @@ function processJSBFile(filePath) {
     const input = fs.readFileSync(resolvedFilePath, 'utf-8');
     console.log(`\x1b[32mProcessing:\x1b[0m ${resolvedFilePath}`);
     const chars = new antlr4.InputStream(input);
-    const lexer = new JSBLexer(chars);
+    const lexer = new TangleLexer(chars);
     const tokens = new antlr4.CommonTokenStream(lexer);
-    const parser = new JSBParser(tokens);
+    const parser = new TangleParser(tokens);
 
     const tree = parser.document();
 
-    const visitor = new JSBVisitor();
+    const visitor = new TangleVisitor();
     const ast = visitor.visit(tree);
 
 
     if (ast.imports !== null && ast.imports !== undefined && ast.imports.length > 0) {
 
         ast.imports.forEach((imp) => {
-            if (path.extname(imp.path) === '.jsb') {
+            if (path.extname(imp.path) === '.tngl') {
                 const resolvedImportPath = path.resolve(path.dirname(resolvedFilePath), imp.path);
 
                 if (resolvedImportPath === resolvedFilePath) {
@@ -70,7 +70,7 @@ function processJSBFile(filePath) {
     }
 
     fs.writeFileSync(
-        path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.jsb') + '.ast.json'),
+        path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.tngl') + '.ast.json'),
         JSON.stringify(ast, null, 4)
     );
 
@@ -79,9 +79,9 @@ function processJSBFile(filePath) {
     const js = generateJS(ast, resolvedFilePath);
 
     fs.writeFileSync(
-        path.resolve(path.dirname(resolvedFilePath), '../out', path.basename(resolvedFilePath, '.jsb') + '.js'),
+        path.resolve(path.dirname(resolvedFilePath), '../out', path.basename(resolvedFilePath, '.tngl') + '.js'),
         js
     );
 }
 
-render("./src/js/examples/BasicSyntax.jsb");
+render("./src/js/examples/BasicSyntax.tngl");

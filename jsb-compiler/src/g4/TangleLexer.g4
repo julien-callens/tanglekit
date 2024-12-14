@@ -1,4 +1,4 @@
-lexer grammar JSBLexer;
+lexer grammar TangleLexer;
 
 WS: [ \t\r\n]+ -> skip ;
 

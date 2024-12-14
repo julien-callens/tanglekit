@@ -8,7 +8,7 @@ export function validateImports(imports, filePath) {
             const componentPath = path.resolve(path.dirname(filePath), imp.path);
             const componentAST = JSON.parse(
                 fs.readFileSync(
-                    path.resolve(path.dirname(componentPath), "../out/ast", path.basename(componentPath, ".jsb") + ".ast.json"),
+                    path.resolve(path.dirname(componentPath), "../out/ast", path.basename(componentPath, ".tngl") + ".ast.json"),
                     "utf-8"
                 )
             );
@@ -26,7 +26,7 @@ export function formatImports(imports) {
     let output = "";
     for (const imp of imports) {
         if (imp.type === "component") {
-            output += `import ${imp.id} from '${imp.path.replace('.jsb', '.js')}';\n`;
+            output += `import ${imp.id} from '${imp.path.replace('.tngl', '.js')}';\n`;
         } else if (imp.type === "styleImport") {
             output += `import '${imp.path}';\n`;
         }

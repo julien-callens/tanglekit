@@ -1,7 +1,7 @@
-parser grammar JSBParser;
+parser grammar TangleParser;
 
 options {
-    tokenVocab = JSBLexer;
+    tokenVocab = TangleLexer;
 }
 
 document

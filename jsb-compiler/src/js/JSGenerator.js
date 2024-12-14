@@ -7,7 +7,7 @@ export const generateName = createVariableNameGenerator();
 
 export function generateJS(ast, filePath) {
     const {imports, props, code, elements} = ast;
-    const componentName = path.basename(filePath, '.jsb');
+    const componentName = path.basename(filePath, '.tngl');
     const ctx = {
         variables: [],
         functions: [],
