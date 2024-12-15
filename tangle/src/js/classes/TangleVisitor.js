@@ -1,5 +1,5 @@
-import TangleParserVisitor from "./generated/TangleParserVisitor.js";
-import TangleParser from "./generated/TangleParser.js";
+import TangleParserVisitor from "../generated/TangleParserVisitor.js";
+import TangleParser from "../generated/TangleParser.js";
 
 export class TangleVisitor extends TangleParserVisitor {
     visitDocument(ctx) {

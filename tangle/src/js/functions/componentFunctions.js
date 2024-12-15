@@ -1,17 +1,16 @@
-import * as path from "node:path";
-import fs from "fs";
 import {ValidationError} from "../classes/ValidationError.js";
+import path from "node:path";
+import {getAST} from "./astCache.js";
 
 export function validateImports(imports, filePath) {
     imports.forEach((imp) => {
         if (imp.type === "component") {
             const componentPath = path.resolve(path.dirname(filePath), imp.path);
-            const componentAST = JSON.parse(
-                fs.readFileSync(
-                    path.resolve(path.dirname(componentPath), "../out/ast", path.basename(componentPath, ".tngl") + ".ast.json"),
-                    "utf-8"
-                )
-            );
+            const componentAST = getAST(componentPath);
+
+            if (!componentAST) {
+                throw new Error(`AST not found for ${componentPath}. Make sure the file is compiled first.`);
+            }
 
             imp.props = componentAST.props?.map((prop) => ({
                 name: prop.name,
@@ -26,7 +25,7 @@ export function formatImports(imports) {
     let output = "";
     for (const imp of imports) {
         if (imp.type === "component") {
-            output += `import ${imp.id} from '${imp.path.replace('.tngl', '.js')}';\n`;
+            output += `import ${imp.id} from '${imp.path}';\n`;
         } else if (imp.type === "styleImport") {
             output += `import '${imp.path}';\n`;
         }

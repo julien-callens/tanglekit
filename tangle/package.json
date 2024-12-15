@@ -1,12 +1,13 @@
 {
   "name": "tangle",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "description": "A compiler for tngl files using ANTLR4",
   "main": "src/js/main.js",
   "type": "module",
   "scripts": {
     "start": "node src/js/main.js",
-    "build": "java -jar antlr/antlr-4.13.2-complete.jar -Dlanguage=JavaScript -o src/js/generated src/g4/TangleLexer.g4 -visitor src/g4/TangleParser.g4"
+    "build": "java -jar antlr/antlr-4.13.2-complete.jar -Dlanguage=JavaScript -o src/js/generated src/g4/TangleLexer.g4 -visitor src/g4/TangleParser.g4",
+    "test": "node src/js/maintest.js"
   },
   "dependencies": {
     "antlr4": "^4.13.2",
@@ -16,7 +17,13 @@
   "author": "Julien Callens",
   "license": "ISC",
   "files": [
-    "src/",
+    "src/js/classes/",
+    "src/js/functions/",
+    "src/js/generated/",
+    "src/js/main.js",
+    "src/js/JSGenerator.js",
+    "src/js/classes/TangleVisitor.js",
+    "src/vite/",
     "README.md"
   ]
 }

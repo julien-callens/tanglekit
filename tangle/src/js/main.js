@@ -1,48 +1,15 @@
 import antlr4 from "antlr4";
-import fs from "fs";
 import TangleParser from "./generated/TangleParser.js";
 import TangleLexer from "./generated/TangleLexer.js";
-import {generateJS} from "./JSGenerator.js";
-import {TangleVisitor} from "./TangleVisitor.js";
-import {formatProps, validateImports} from "./functions/componentFunctions.js";
-import * as path from "node:path";
+import {TangleVisitor} from "./classes/TangleVisitor.js";
+import tanglePlugin from "../vite/plugin.js";
+import path from "node:path";
+import {formatCode, formatImports, formatProps} from "./functions/componentFunctions.js";
+import {elementTransformer} from "./functions/transformer.js";
+import {generateName} from "./functions/helperFunctions.js";
 
-const processedFiles = new Set();
-
-function render(filePath) {
-    fs.mkdirSync(path.resolve(path.dirname(filePath), '../out/ast'), {recursive: true});
-    processTangleFile(filePath);
-    createEntryPoint(filePath);
-}
-
-function createEntryPoint(filePath) {
-    const resolvedFilePath = path.resolve(filePath);
-    const entryPoint = path.resolve(path.dirname(resolvedFilePath), '../out', 'index.js');
-    const baseName = path.basename(resolvedFilePath, '.tngl');
-
-    const ast = JSON.parse(fs.readFileSync(path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.tngl') + '.ast.json'), 'utf-8'));
-    const props = ast.props;
-
-    let indexContent = `import ${baseName} from \"./${baseName}.js\";\n\ndocument.body.appendChild(`;
-    indexContent += `${path.basename(resolvedFilePath, '.tngl')}(`;
-    indexContent += `{${formatProps(props, "in")}}`;
-    indexContent += `));`;
-
-    fs.writeFileSync(entryPoint, indexContent);
-}
-
-function processTangleFile(filePath) {
-    const resolvedFilePath = path.resolve(filePath);
-
-    if (processedFiles.has(resolvedFilePath)) {
-        console.log(`\x1b[90mSkipping already processed file: ${resolvedFilePath} \x1b[0m`);
-        return;
-    }
-    processedFiles.add(resolvedFilePath);
-
-    const input = fs.readFileSync(resolvedFilePath, 'utf-8');
-    console.log(`\x1b[32mProcessing:\x1b[0m ${resolvedFilePath}`);
-    const chars = new antlr4.InputStream(input);
+export function compileTangleToAST(sourceCode) {
+    const chars = new antlr4.InputStream(sourceCode);
     const lexer = new TangleLexer(chars);
     const tokens = new antlr4.CommonTokenStream(lexer);
     const parser = new TangleParser(tokens);
@@ -50,43 +17,48 @@ function processTangleFile(filePath) {
     const tree = parser.document();
 
     const visitor = new TangleVisitor();
-    const ast = visitor.visit(tree);
-
-    fs.writeFileSync(
-        path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.tngl') + '.ast.json'),
-        JSON.stringify(ast, null, 4)
-    );
-
-    if (ast.imports !== null && ast.imports !== undefined && ast.imports.length > 0) {
-
-        ast.imports.forEach((imp) => {
-            if (path.extname(imp.path) === '.tngl') {
-                const resolvedImportPath = path.resolve(path.dirname(resolvedFilePath), imp.path);
-
-                if (resolvedImportPath === resolvedFilePath) {
-                    console.error(`\x1b[31mSelf-referencing import detected in ${resolvedFilePath}: ${imp.path}\x1b[0m`);
-                    ast.imports = ast.imports.filter((i) => i.path !== imp.path);
-                    return;
-                }
-
-                processTangleFile(resolvedImportPath);
-            }
-        });
-    }
-
-    fs.writeFileSync(
-        path.resolve(path.dirname(resolvedFilePath), '../out/ast', path.basename(resolvedFilePath, '.tngl') + '.ast.json'),
-        JSON.stringify(ast, null, 4)
-    );
-
-    validateImports(ast.imports, resolvedFilePath);
-
-    const js = generateJS(ast, resolvedFilePath);
-
-    fs.writeFileSync(
-        path.resolve(path.dirname(resolvedFilePath), '../out', path.basename(resolvedFilePath, '.tngl') + '.js'),
-        js
-    );
+    return visitor.visit(tree);
 }
 
-render("./src/js/examples/BasicSyntax.tngl");
+export function generateJS(ast, filePath) {
+    const {imports, props, code, elements} = ast;
+    const componentName = path.basename(filePath, '.tngl');
+    const ctx = {
+        variables: [],
+        functions: [],
+        imports: imports
+    };
+
+    let output = "";
+
+    output += formatImports(imports);
+
+    const propsOutput = formatProps(props) ? `{${formatProps(props)}}` : "";
+
+    output += `export default function ${componentName}(${propsOutput}) {\n`;
+
+    output += formatCode(code);
+
+    let handler = elementTransformer[elements.type];
+
+    const firstElementComponent = imports.find((imp) => imp.id === elements.tagName) || null;
+    let name = "";
+
+    if (firstElementComponent) {
+        handler = elementTransformer.component;
+        output += handler(elements, firstElementComponent, ctx);
+    } else {
+        name = generateName();
+        if (handler) {
+            output += handler(elements, name, ctx);
+        }
+    }
+
+    output += `\nreturn ${firstElementComponent?.id || name};\n`
+
+    output += "}\n";
+
+    return output;
+}
+
+export default tanglePlugin;

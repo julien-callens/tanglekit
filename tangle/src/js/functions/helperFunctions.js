@@ -1,5 +1,7 @@
 import htmlTags from "html-tags";
 
+export const generateName = createVariableNameGenerator();
+
 export function createVariableNameGenerator() {
     const usedNames = new Set();
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

@@ -1,0 +1,23 @@
+<import>
+    "./styles.css";
+    NestedComponent from './NestedComponent.tngl';
+    AnotherNestedComponent from './AnotherNestedComponent.tngl';
+</import>
+
+<code>
+    let variable = 'b';
+</code>
+
+<div class='randomClass'>
+        <p class={{variable}}>variable: {{variable}}</p>
+
+        <NestedComponent prop="beans" prop2={{variable}} />
+        <AnotherNestedComponent>
+            <p>content of AnotherNestedComponent</p>
+            test
+            <AnotherNestedComponent>
+                        <p>content of AnotherNestedComponent</p>
+                        test
+                    </AnotherNestedComponent>
+        </AnotherNestedComponent>
+</div>
