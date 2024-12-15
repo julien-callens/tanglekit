@@ -28,10 +28,8 @@ export default function tanglePlugin() {
         if (processedFiles.has(filePath)) {
             const cachedEntry = processedFiles.get(filePath);
             if (cachedEntry.hash === hash) {
-                console.log(`Using cached file: ${filePath}`);
                 return cachedEntry.jsCode;
             }
-            console.log(`File changed: ${filePath}`);
         }
 
         const ast = compileTangleToAST(sourceCode);

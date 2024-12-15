@@ -1,17 +1,18 @@
 {
-  "name": "tangle",
-  "version": "0.4.0",
+  "name": "tanglekit",
+  "version": "0.4.1",
   "description": "A compiler for tngl files using ANTLR4",
   "main": "src/js/main.js",
   "type": "module",
   "scripts": {
     "start": "node src/js/main.js",
     "build": "java -jar antlr/antlr-4.13.2-complete.jar -Dlanguage=JavaScript -o src/js/generated src/g4/TangleLexer.g4 -visitor src/g4/TangleParser.g4",
-    "test": "node src/js/maintest.js"
+    "test": "vitest --run"
   },
   "dependencies": {
     "antlr4": "^4.13.2",
-    "html-tags": "^4.0.0"
+    "html-tags": "^4.0.0",
+    "vitest": "^2.1.8"
   },
   "keywords": [],
   "author": "Julien Callens",

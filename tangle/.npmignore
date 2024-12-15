@@ -1,5 +1,5 @@
 src/g4
-src/js/examples/
+test/examples/
 src/js/out/
 
-src/js/maintest.js
+test/testFunctions.js
