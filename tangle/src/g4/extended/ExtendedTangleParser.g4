@@ -37,7 +37,7 @@ propsContent
     ;
 
 codeDeclaration
-    : CODE_OPEN codeContent* CODE_CLOSE
+    : CODE_OPEN (codeContent comment?)* CODE_CLOSE
     ;
 
 codeContent
