@@ -9,6 +9,7 @@ fragment LBRACE: '{';
 fragment RBRACE: '}';
 fragment RPAREN: ')';
 fragment COMMA: ',';
+fragment DOT: '.';
 fragment SEMICOLON: ';';
 fragment QUOTE: '\'';
 fragment DOUBLE_QUOTE: '"';

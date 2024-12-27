@@ -41,9 +41,11 @@ codeDeclaration
     ;
 
 codeContent
-    : variableDeclaration
-    | comment
+    : comment
+    | variableDeclaration
+    | ifStatement
     | functionDeclaration
+    | (functionCall STATEMENT_END)
     | variableModification
     ;
 
@@ -60,11 +62,23 @@ comment
     ;
 
 variableDeclaration
-    : VAR_DEF NAME (ASSIGN_OPERATOR statement)? STATEMENT_END
+    : VAR_DEF NAME (ASSIGN statement)? STATEMENT_END
     ;
 
 variableModification
-    : NAME ASSIGN_OPERATOR statement STATEMENT_END
+    : NAME (ASSIGN | ASSIGN_OPERATOR) statement STATEMENT_END
+    ;
+
+ifStatement
+    : IF EXPRESSION_OPEN booleanExpression EXPRESSION_CLOSE CODE_BLOCK_OPEN (codeContent comment?)* CODE_BLOCK_CLOSE
+    ;
+
+embeddedIfStatement
+    : EXPRESSION_OPEN booleanExpression EXPRESSION_CLOSE
+    ;
+
+booleanExpression
+    : expression operator expression
     ;
 
 statement
@@ -96,17 +110,29 @@ elementAttribute
     ;
 
 embeddedStatement
-    : EMBEDDED_OPEN expression EMBEDDED_CLOSE
+    : embeddedIf
+    | EMBEDDED_OPEN expression EMBEDDED_CLOSE
     ;
 
 expression
     : functionCall
+    | embeddedIfStatement
     | variableTypes
     | NAME
     ;
 
+embeddedIf
+    : EMBEDDED_OPEN IF embeddedIfStatement EMBEDDED_CLOSE
+    content?
+    ((EMBEDDED_OPEN ELSE_IF embeddedIfStatement? EMBEDDED_CLOSE)
+    content?)*
+    ((EMBEDDED_OPEN ELSE embeddedIfStatement? EMBEDDED_CLOSE)
+    content?)?
+    EMBEDDED_OPEN EMBEDDED_END_IF EMBEDDED_CLOSE
+    ;
+
 functionCall
-    : NAME LPAREN functionCallArgs? ARGS_CLOSE
+    : NAME(METHOD_CALL NAME)* LPAREN functionCallArgs? ARGS_CLOSE
     ;
 
 functionCallArgs

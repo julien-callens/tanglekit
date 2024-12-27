@@ -10,6 +10,7 @@ fragment LBRACE: '{';
 fragment RBRACE: '}';
 fragment RPAREN: ')';
 fragment COMMA: ',';
+fragment DOT: '.';
 fragment SEMICOLON: ';';
 fragment QUOTE: '\'';
 fragment DOUBLE_QUOTE: '"';
@@ -51,6 +52,9 @@ PROPS_OPEN: '<props>' -> pushMode(PROPS);
 CODE_OPEN: '<code>' -> pushMode(CODE);
 
 FUNCTION: 'function ';
+IF: 'if';
+ELSE_IF: 'else if';
+ELSE: 'else';
 LPAREN: '(';
 
 EMBEDDED_OPEN: LBRACE LBRACE;
@@ -93,7 +97,7 @@ mode PROPS;
 
     PROP_DEF: VAR_DEF -> type(VAR_DEF) ;
     PROP_NAME: NAME -> type(NAME) ;
-    PROP_ASSIGN: ASSIGN-> type(ASSIGN_OPERATOR), pushMode(STATEMENT) ;
+    PROP_ASSIGN: ASSIGN-> type(ASSIGN), pushMode(STATEMENT) ;
 
     PROPS_WS: WS -> skip ;
     PROP_CLOSE: STATEMENT_END -> type(STATEMENT_END);
@@ -103,12 +107,16 @@ mode CODE;
 
     COMMENT_START: SLASH SLASH -> pushMode(COMMENT) ;
 
+    IF_STATEMENT: IF -> type(IF), pushMode(IF_STATEMENT) ;
+
     CODE_VAR_DEF: VAR_DEF -> type(VAR_DEF) ;
     CODE_NAME: NAME -> type(NAME) ;
-    CODE_ASSIGN: ASSIGN -> type(ASSIGN_OPERATOR), pushMode(STATEMENT) ;
+    CODE_ASSIGN: ASSIGN -> type(ASSIGN), pushMode(STATEMENT) ;
+    CODE_ASSIGN_OPERATOR: ASSIGN_OPERATOR -> type(ASSIGN_OPERATOR), pushMode(STATEMENT) ;
 
     FUNCTION_DECLARATION: FUNCTION -> type(FUNCTION) ;
     FUNCTION_NAME: NAME -> type(NAME) ;
+    METHOD_CALL: DOT ;
     FUNCTION_ARGS_OPEN: LPAREN -> type(LPAREN), pushMode(FUNCTION_ARGS) ;
     FUNCTION_CODE_BLOCK_OPEN: CODE_BLOCK_OPEN -> type(CODE_BLOCK_OPEN), pushMode(CODE) ;
     FUNCTION_CODE_BLOCK_CLOSE: CODE_BLOCK_CLOSE -> type(CODE_BLOCK_CLOSE), popMode ;
@@ -117,15 +125,25 @@ mode CODE;
     CODE_WS: WS -> skip ;
     CODE_CLOSE: '</code>' -> popMode ;
 
+mode IF_STATEMENT;
 
-mode COMMENT;
+    EXPRESSION_OPEN: LPAREN -> popMode, pushMode(STATEMENT) ;
+    IF_WS: WS -> skip ;
 
-    COMMENT_CONTENT: ~[\n]* ;
-    COMMENT_CLOSE: '\n' -> popMode ;
+mode ELSE_STATEMENT;
+
+    ELSE_EXPRESSION_OPEN: LPAREN -> type(EXPRESSION_OPEN), popMode, pushMode(STATEMENT) ;
+    ELSE_WS: WS -> skip ;
+    EMPTY_ELSE: EMBEDDED_CLOSE -> type(EMBEDDED_CLOSE), popMode, popMode ;
 
 mode FUNCTION_ARGS;
 
+    STRING_ARG: STRING_WRAPPER -> type(STRING_OPEN), pushMode(STRING) ;
+    INT_ARG: INT -> type(INT) ;
+    BOOL_ARG: BOOL -> type(BOOL) ;
     NAME_ARG: NAME -> type(NAME) ;
+    FUNCTION_ARGS: LPAREN -> type(LPAREN), pushMode(FUNCTION_ARGS) ;
+
     FUNCTION_ARGS_SEPARATOR: ARGS_SEPARATOR -> type(ARGS_SEPARATOR) ;
     FUNCTION_ARGS_CLOSE: RPAREN -> type(ARGS_CLOSE), popMode ;
     FUNCTION_ARGS_WS: WS -> skip ;
@@ -143,6 +161,7 @@ mode STATEMENT;
     NAME_STATEMENT: NAME -> type(NAME) ;
     STATEMENT_WS: WS -> skip ;
     STATEMENT_CLOSE: SEMICOLON -> type(STATEMENT_END), popMode ;
+    EXPRESSION_CLOSE: RPAREN -> popMode ;
 
 mode TAG;
 
@@ -165,33 +184,24 @@ mode ATTRIBUTE;
 
 mode EMBEDDED;
 
+    EMBEDDED_IF: IF -> type(IF), pushMode(IF_STATEMENT) ;
+    EMBEDDED_ELSE_IF: ELSE_IF -> type(ELSE_IF), pushMode(IF_STATEMENT) ;
+    EMBEDDED_ELSE: ELSE -> type(ELSE), pushMode(ELSE_STATEMENT) ;
+    EMBEDDED_END_IF: SLASH IF ;
+
     EMBEDDED_INT: INT -> type(INT) ;
     EMBEDDED_BOOL: BOOL -> type(BOOL) ;
     EMBEDDED_NAME: NAME -> type(NAME) ;
-    EMBEDDED_FUNCTION_ARGS_OPEN: LPAREN -> type(LPAREN), pushMode(FUNCTION_CALL_ARGS) ;
+    EMBEDDED_METHOD_CALL: DOT -> type(METHOD_CALL) ;
+    EMBEDDED_FUNCTION_ARGS_OPEN: LPAREN -> type(LPAREN), pushMode(FUNCTION_ARGS) ;
 
     CLOSE: EMBEDDED_CLOSE -> type(EMBEDDED_CLOSE), popMode ;
     EMBEDDED_WS: WS -> skip ;
 
-mode EXPRESSION;
+mode COMMENT;
 
-    EXPRESSION_INT: INT -> type(INT) ;
-    EXPRESSION_BOOL: BOOL -> type(BOOL) ;
-    EXPRESSION_STRING: STRING_WRAPPER -> type(STRING_OPEN), pushMode(STRING) ;
-    EXPRESSION_NAME: NAME -> type(NAME) ;
-    EXPRESSION_FUNCTION_CALL: FUNC_START -> type(FUNC_START), pushMode(FUNCTION_CALL_ARGS) ;
-
-    EXRESSION_CLOSE: (SEMICOLON | EMBEDDED_CLOSE) -> type(STATEMENT_END), popMode ;
-    EXPRESSION_WS: WS -> skip ;
-
-mode FUNCTION_CALL_ARGS;
-
-    NAME_CALL_ARG: NAME -> type(NAME) ;
-    STRING_CALL_ARG: STRING_WRAPPER -> type(STRING_OPEN), pushMode(STRING) ;
-    FUNCTION_CALL_ARG: FUNC_START -> type(FUNC_START), pushMode(FUNCTION_CALL_ARGS) ;
-    FUNCTION_CALL_ARGS_SEPARATOR: ARGS_SEPARATOR -> type(ARGS_SEPARATOR) ;
-    FUNCTION_CALL_ARGS_CLOSE: RPAREN -> type(ARGS_CLOSE), popMode ;
-    FUNCTION_CALL_ARGS_WS: WS -> skip ;
+    COMMENT_CONTENT: ~[\n]* ;
+    COMMENT_CLOSE: '\n' -> popMode ;
 
 mode STRING;
 
