@@ -41,7 +41,7 @@ codeContent
     ;
 
 variableDeclaration
-    : VAR_DEF NAME EQUALS statement STATEMENT_END
+    : VAR_DEF NAME ASSIGNstatement STATEMENT_END
     ;
 
 statement
@@ -76,7 +76,7 @@ content
     ;
 
 elementAttribute
-    : NAME EQUALS (embeddedStatement | stringType)
+    : NAME ASSIGN(embeddedStatement | stringType)
     ;
 
 embeddedStatement

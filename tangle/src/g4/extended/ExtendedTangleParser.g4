@@ -44,6 +44,7 @@ codeContent
     : variableDeclaration
     | comment
     | functionDeclaration
+    | variableModification
     ;
 
 functionDeclaration
@@ -54,14 +55,28 @@ functionArgs
     : expression (ARGS_SEPARATOR expression)*
     ;
 
-comment: COMMENT_START COMMENT_CONTENT COMMENT_CLOSE;
+comment
+    : COMMENT_START COMMENT_CONTENT COMMENT_CLOSE
+    ;
 
 variableDeclaration
-    : VAR_DEF NAME (EQUALS statement)? STATEMENT_END
+    : VAR_DEF NAME (ASSIGN_OPERATOR statement)? STATEMENT_END
+    ;
+
+variableModification
+    : NAME ASSIGN_OPERATOR statement STATEMENT_END
     ;
 
 statement
-    : variableTypes
+    : (variableTypes | NAME)?
+    | checkStatement
+    | CREMENT_OPERATOR NAME
+    | NAME CREMENT_OPERATOR
+    | functionCall
+    ;
+
+checkStatement
+    : (variableTypes | NAME) operator (variableTypes | NAME)
     ;
 
 elementsDeclaration
@@ -77,7 +92,7 @@ content
     ;
 
 elementAttribute
-    : NAME EQUALS (embeddedStatement | stringType)
+    : NAME ASSIGN (embeddedStatement | stringType)
     ;
 
 embeddedStatement
@@ -110,4 +125,10 @@ stringType
 
 textContent
     : TEXT
+    ;
+
+operator
+    : ARITHMETIC_OPERATOR
+    | LOGICAL_OPERATOR
+    | COMPARISON_OPERATOR
     ;

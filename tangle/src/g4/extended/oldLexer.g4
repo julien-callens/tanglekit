@@ -44,7 +44,7 @@ ARGS_SEPARATOR: COMMA;
 
 VAR_DEF: VAR_LET | VAR_CONST;
 
-EQUALS: '=';
+ASSIGN: '=';
 
 STATEMENT_END: SEMICOLON;
 
@@ -67,7 +67,7 @@ mode PROPS;
 
         PROP_DEF: VAR_DEF -> type(VAR_DEF) ;
         PROP_NAME: NAME -> type(NAME) ;
-        PROP_EQUALS: EQUALS -> type(EQUALS), pushMode(STATEMENT) ;
+        PROP_ASSIGN: ASSIGN-> type(ASSIGN), pushMode(STATEMENT) ;
 
         PROPS_WS: WS -> skip ;
         PROPS_CLOSE: '</props>' -> popMode ;
@@ -78,7 +78,7 @@ mode CODE;
 
         CODE_VAR_DEF: VAR_DEF -> type(VAR_DEF) ;
         CODE_NAME: NAME -> type(NAME) ;
-        CODE_EQUALS: EQUALS -> type(EQUALS), pushMode(STATEMENT) ;
+        CODE_ASSIGN: ASSIGN-> type(ASSIGN), pushMode(STATEMENT) ;
 
         FUNCTION_DECLARATION: FUNCTION -> type(FUNCTION) ;
         FUNCTION_NAME: NAME -> type(NAME) ;
@@ -134,7 +134,7 @@ mode ATTRIBUTE;
     ATTRIBUTE_CLOSE: '>' -> type(TAG_CLOSE), popMode, pushMode(CONTENT) ;
 
     ATTRIBUTE_NAME: NAME -> type(NAME) ;
-    ATTRIBUTE_EQUALS: EQUALS -> type(EQUALS) ;
+    ATTRIBUTE_ASSIGN: ASSIGN-> type(ASSIGN) ;
     ATTRIBUTE_VALUE: STRING_OPEN -> type(STRING_OPEN), pushMode(STRING) ;
     ATTRIBUTE_VALUE_DYNAMIC: EMBEDDED_OPEN -> type(EMBEDDED_OPEN), pushMode(EMBEDDED) ;
 

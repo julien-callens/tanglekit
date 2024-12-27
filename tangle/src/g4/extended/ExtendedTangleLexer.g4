@@ -2,6 +2,7 @@ lexer grammar ExtendedTangleLexer;
 
 WS: [ \t\r\n]+ -> skip ;
 
+// fragments
 fragment VAR_LET: 'let';
 fragment VAR_CONST: 'const';
 fragment STRING_WRAPPER: QUOTE | DOUBLE_QUOTE;
@@ -16,20 +17,49 @@ fragment SLASH: '/';
 fragment NUMBER: [0-9_]+;
 fragment LETTER: [a-zA-Z_];
 
+// operators
+fragment PLUS: '+';
+fragment MINUS: '-';
+fragment MULTIPLY: '*';
+fragment DIVIDE: '/';
+fragment MOD: '%';
+fragment AND: '&&';
+fragment OR: '||';
+fragment NOT: '!';
+fragment EQUAL: '===';
+fragment NOT_EQUAL: '!==';
+fragment LESS: '<';
+fragment LESS_EQUAL: '<=';
+fragment GREATER: '>';
+fragment GREATER_EQUAL: '>=';
+
+// assignment
+ASSIGN: '=';
+fragment PLUS_ASSIGN: '+=';
+fragment MINUS_ASSIGN: '-=';
+fragment MULTIPLY_ASSIGN: '*=';
+fragment DIVIDE_ASSIGN: '/=';
+fragment INCREMENT: '++';
+fragment DECREMENT: '--';
+
+ASSIGN_OPERATOR: ASSIGN | PLUS_ASSIGN | MINUS_ASSIGN | MULTIPLY_ASSIGN | DIVIDE_ASSIGN;
+
+
+// blocks
 IMPORT_OPEN: '<import>' -> pushMode(IMPORT);
 PROPS_OPEN: '<props>' -> pushMode(PROPS);
 CODE_OPEN: '<code>' -> pushMode(CODE);
 
 FUNCTION: 'function ';
-BOOL: 'true' | 'false';
-EQUALS: '=';
 LPAREN: '(';
 
 EMBEDDED_OPEN: LBRACE LBRACE;
 EMBEDDED_CLOSE: RBRACE RBRACE;
 EMBEDDED_CONTENT_CLOSE: EMBEDDED_CLOSE -> pushMode(CONTENT);
 
+// types
 INT: [0-9]+;
+BOOL: 'true' | 'false';
 STRING_OPEN: STRING_WRAPPER -> pushMode(STRING);
 
 CODE_BLOCK_OPEN: LBRACE;
@@ -63,7 +93,7 @@ mode PROPS;
 
     PROP_DEF: VAR_DEF -> type(VAR_DEF) ;
     PROP_NAME: NAME -> type(NAME) ;
-    PROP_EQUALS: EQUALS -> type(EQUALS), pushMode(STATEMENT) ;
+    PROP_ASSIGN: ASSIGN-> type(ASSIGN_OPERATOR), pushMode(STATEMENT) ;
 
     PROPS_WS: WS -> skip ;
     PROP_CLOSE: STATEMENT_END -> type(STATEMENT_END);
@@ -75,7 +105,7 @@ mode CODE;
 
     CODE_VAR_DEF: VAR_DEF -> type(VAR_DEF) ;
     CODE_NAME: NAME -> type(NAME) ;
-    CODE_EQUALS: EQUALS -> type(EQUALS), pushMode(STATEMENT) ;
+    CODE_ASSIGN: ASSIGN -> type(ASSIGN_OPERATOR), pushMode(STATEMENT) ;
 
     FUNCTION_DECLARATION: FUNCTION -> type(FUNCTION) ;
     FUNCTION_NAME: NAME -> type(NAME) ;
@@ -102,6 +132,11 @@ mode FUNCTION_ARGS;
 
 mode STATEMENT;
 
+    ARITHMETIC_OPERATOR: PLUS | MINUS | MULTIPLY | DIVIDE | MOD;
+    LOGICAL_OPERATOR: AND | OR | NOT;
+    COMPARISON_OPERATOR: EQUAL | NOT_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL;
+    CREMENT_OPERATOR: INCREMENT | DECREMENT;
+
     INT_STATEMENT: INT -> type(INT) ;
     BOOLEAN_STATEMENT: BOOL -> type(BOOL) ;
     STRING_START: STRING_WRAPPER -> type(STRING_OPEN), pushMode(STRING) ;
@@ -124,7 +159,7 @@ mode ATTRIBUTE;
     ATTRIBUTE_CLOSE: '>' -> type(TAG_CLOSE), popMode, pushMode(CONTENT) ;
 
     ATTRIBUTE_NAME: NAME -> type(NAME) ;
-    ATTRIBUTE_EQUALS: EQUALS -> type(EQUALS) ;
+    ATTRIBUTE_ASSIGN: ASSIGN-> type(ASSIGN) ;
     ATTRIBUTE_VALUE: STRING_OPEN -> type(STRING_OPEN), pushMode(STRING) ;
     ATTRIBUTE_VALUE_DYNAMIC: EMBEDDED_OPEN -> type(EMBEDDED_OPEN), pushMode(EMBEDDED) ;
 
