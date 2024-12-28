@@ -1,4 +1,4 @@
-lexer grammar ExtendedTangleLexer;
+lexer grammar TangleLexer;
 
 WS: [ \t\r\n]+ -> skip ;
 

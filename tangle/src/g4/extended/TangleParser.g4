@@ -1,7 +1,7 @@
-parser grammar ExtendedTangleParser;
+parser grammar TangleParser;
 
 options {
-    tokenVocab = ExtendedTangleLexer;
+    tokenVocab = TangleLexer;
 }
 
 document
