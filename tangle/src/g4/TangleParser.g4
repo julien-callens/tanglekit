@@ -37,19 +37,60 @@ propsContent
     ;
 
 codeDeclaration
-    : CODE_OPEN codeContent* CODE_CLOSE
+    : CODE_OPEN (codeContent comment?)* CODE_CLOSE
     ;
 
 codeContent
-    : variableDeclaration
+    : comment
+    | variableDeclaration
+    | ifStatement
+    | functionDeclaration
+    | (functionCall STATEMENT_END)
+    | variableModification
+    ;
+
+functionDeclaration
+    : FUNCTION NAME LPAREN functionArgs? ARGS_CLOSE CODE_BLOCK_OPEN codeContent* CODE_BLOCK_CLOSE
+    ;
+
+functionArgs
+    : expression (ARGS_SEPARATOR expression)*
+    ;
+
+comment
+    : COMMENT_START COMMENT_CONTENT COMMENT_CLOSE
     ;
 
 variableDeclaration
-    : VAR_DEF NAME (EQUALS statement)? STATEMENT_END
+    : VAR_DEF NAME (ASSIGN statement)? STATEMENT_END
+    ;
+
+variableModification
+    : NAME (ASSIGN | ASSIGN_OPERATOR) statement STATEMENT_END
+    ;
+
+ifStatement
+    : IF EXPRESSION_OPEN booleanExpression EXPRESSION_CLOSE CODE_BLOCK_OPEN (codeContent comment?)* CODE_BLOCK_CLOSE
+    ;
+
+embeddedIfStatement
+    : EXPRESSION_OPEN booleanExpression EXPRESSION_CLOSE
+    ;
+
+booleanExpression
+    : expression operator expression
     ;
 
 statement
-    : variableTypes
+    : (variableTypes | NAME)?
+    | checkStatement
+    | CREMENT_OPERATOR NAME
+    | NAME CREMENT_OPERATOR
+    | functionCall
+    ;
+
+checkStatement
+    : (variableTypes | NAME) operator (variableTypes | NAME)
     ;
 
 elementsDeclaration
@@ -65,16 +106,45 @@ content
     ;
 
 elementAttribute
-    : NAME EQUALS (embeddedStatement | stringType)
+    : NAME ASSIGN (embeddedStatement | stringType)
     ;
 
 embeddedStatement
-    : EMBEDDED_OPEN expression EMBEDDED_CLOSE
+    : embeddedIf
+    | EMBEDDED_OPEN expression EMBEDDED_CLOSE
     ;
 
 expression
-    : variableTypes
+    : functionCall
+    | embeddedIfStatement
+    | variableTypes
     | NAME
+    ;
+
+embeddedIf
+    : EMBEDDED_OPEN IF embeddedIfStatement EMBEDDED_CLOSE
+    content?
+    embeddedElseIf*
+    embeddedElse?
+    EMBEDDED_OPEN EMBEDDED_END_IF EMBEDDED_CLOSE
+    ;
+
+embeddedElseIf
+    : EMBEDDED_OPEN ELSE_IF embeddedIfStatement EMBEDDED_CLOSE
+    content?
+    ;
+
+embeddedElse
+    : EMBEDDED_OPEN ELSE embeddedIfStatement? EMBEDDED_CLOSE
+    content?
+    ;
+
+functionCall
+    : NAME(METHOD_CALL NAME)* LPAREN functionCallArgs? ARGS_CLOSE
+    ;
+
+functionCallArgs
+    : expression (ARGS_SEPARATOR expression)*
     ;
 
 variableTypes
@@ -89,4 +159,10 @@ stringType
 
 textContent
     : TEXT
+    ;
+
+operator
+    : ARITHMETIC_OPERATOR
+    | LOGICAL_OPERATOR
+    | COMPARISON_OPERATOR
     ;

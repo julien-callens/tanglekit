@@ -1,4 +1,4 @@
-// Generated from src/g4/extended/TangleParser.g4 by ANTLR 4.13.2
+// Generated from src/g4/TangleParser.g4 by ANTLR 4.13.2
 // jshint ignore: start
 import antlr4 from 'antlr4';
 import TangleParserListener from './TangleParserListener.js';
