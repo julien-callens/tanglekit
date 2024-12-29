@@ -5,9 +5,9 @@
   "main": "src/js/main.js",
   "type": "module",
   "scripts": {
-    "start": "node src/js/main.js",
-    "build": "java -jar antlr/antlr-4.13.2-complete.jar -Dlanguage=JavaScript -o src/js/generated src/g4/extended/TangleLexer.g4 -visitor src/g4/extended/TangleParser.g4",
-    "test": "vitest --run"
+    "build": "java -jar antlr/antlr-4.13.2-complete.jar -Dlanguage=JavaScript -o src/js/generated src/g4/TangleLexer.g4 -visitor src/g4/TangleParser.g4",
+    "test": "vitest --run",
+    "pack": "npm pack"
   },
   "dependencies": {
     "antlr4": "^4.13.2",

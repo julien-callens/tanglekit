@@ -1,0 +1,95 @@
+document =
+    [importDeclaration],
+    [propsDeclaration],
+    [codeDeclaration],
+    elementsDeclaration
+    ;
+
+importDeclaration =
+    "<import>",
+    {importStatement},
+    "</import>"
+    ;
+
+importStatement =
+    componentImport
+    | styleImport
+    ;
+
+componentImport =
+    IDENTIFIER, "from", QUOTE, STRING, QUOTE, ";"
+    ;
+
+styleImport =
+    QUOTE, STRING, QUOTE, ";"
+    ;
+
+propsDeclaration =
+    "<props>",
+    {variableDeclaration},
+    "</props>"
+    ;
+
+variableDeclaration =
+    ( "let" | "const" ), IDENTIFIER, [ "=", statement ], ";"
+    ;
+
+statement =
+    variableTypes
+    ;
+
+variableTypes =
+    INT
+    | stringType
+    | BOOL
+    ;
+
+stringType =
+    QUOTE, STRING, QUOTE
+    ;
+
+codeDeclaration =
+    "<code>",
+    {codeContent},
+    "</code>"
+    ;
+
+codeContent =
+    variableDeclaration
+    ;
+
+elementsDeclaration =
+    "<", IDENTIFIER, {elementAttribute},
+    (
+        ">", content, "</", IDENTIFIER, ">"
+        | "/>"
+    )
+    ;
+
+elementAttribute =
+    IDENTIFIER, "=", (embeddedStatement | stringType)
+    ;
+
+content =
+    { elementsDeclaration
+    | embeddedStatement
+    | textContent }
+    ;
+
+embeddedStatement =
+    "{{", expression, "}}"
+    ;
+
+expression =
+    variableTypes
+    | IDENTIFIER
+    ;
+
+textContent =
+    TEXT
+    ;
+> **Note**
+> **`children`** is a special prop that can be exported. This then supposed to be used in a non-self-closing
+> component.
+> `<MyComponent requiredProp="..." >I am the children passed</MyComponent>`
+
