@@ -1,7 +1,3 @@
-Below is an **updated `README.md`** that reflects the **latest simplified grammar** you’ve provided. This includes adjustments so that `<code>` blocks only allow **variable declarations** and removes references to complex statements (like `if` statements, function calls, etc.) in the `<code>` block. The **HTML-like portion** still supports **embedded expressions** (`{{ expression }}`), which can be **integers**, **booleans**, **strings**, or **names**.
-
----
-
 # TangleKit
 
 **An easy-to-use JS framework based on `.tngl` files**
