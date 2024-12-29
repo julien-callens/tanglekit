@@ -66,6 +66,7 @@ export default function tanglePlugin() {
         enforce: 'pre',
         async transform(code, id) {
             if (id.endsWith('.tngl')) {
+                try {
                 const jsCode = await processTangleFile(id);
                 for (const dep of dependencyGraph.get(id) || []) {
                     this.addWatchFile(dep);
@@ -74,6 +75,9 @@ export default function tanglePlugin() {
                     code: jsCode,
                     map: null,
                 };
+                } catch (err) {
+                    this.error(`Error processing ${id}: ${err.message}`);
+                }
             }
             return null;
         },

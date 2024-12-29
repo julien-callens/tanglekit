@@ -14,7 +14,29 @@ export function compileTangleToAST(sourceCode) {
     const tokens = new antlr4.CommonTokenStream(lexer);
     const parser = new TangleParser(tokens);
 
+    class TangleErrorListener {
+        constructor() {
+            this.errors = [];
+        }
+
+        syntaxError(recognizer, offendingSymbol, line, column, msg, e) {
+            const errorMsg = `Syntax Error at line ${line}:${column} - ${msg}`;
+            this.errors.push(errorMsg);
+        }
+    }
+
+    const errorListener = new TangleErrorListener();
+    lexer.removeErrorListeners()
+    lexer.addErrorListener(errorListener);
+    parser.removeErrorListeners()
+    parser.addErrorListener(errorListener);
+
     const tree = parser.document();
+
+    if (errorListener.errors.length > 0) {
+        errorListener.errors.forEach(error => console.error(error));
+        throw new Error(`Compilation failed due to syntax errors. ${errorListener.errors[0]}`);
+    }
 
     const visitor = new TangleVisitor();
     return visitor.visit(tree);
