@@ -3,7 +3,6 @@ out/
 .idea/
 node_modules/
 
-antlr/
 generate-compiler.sh
 
 output.js

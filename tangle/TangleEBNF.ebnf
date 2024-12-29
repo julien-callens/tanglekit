@@ -1,0 +1,200 @@
+document =
+[importDeclaration],
+[propsDeclaration],
+[codeDeclaration],
+elementsDeclaration
+;
+
+importDeclaration =
+"<import>",
+{importStatement},
+"</import>"
+;
+
+importStatement =
+componentImport
+| styleImport
+;
+
+componentImport =
+IDENTIFIER,
+"from",
+QUOTE, STRING, QUOTE,
+";"
+;
+
+styleImport =
+QUOTE, STRING, QUOTE,
+";"
+;
+
+propsDeclaration =
+"<props>",
+{variableDeclaration},
+"</props>"
+;
+
+variableDeclaration =
+( "let" | "const" ),
+IDENTIFIER,
+[ "=", statement ],
+";"
+;
+
+codeDeclaration =
+"<code>",
+{ codeContent, [comment] },
+"</code>"
+;
+
+codeContent =
+comment
+| variableDeclaration
+| ifStatement
+| functionDeclaration
+| functionCall, ";"
+| variableModification
+;
+
+comment =
+"//", COMMENT_TEXT, "\n"
+;
+
+ifStatement =
+"if", "(", booleanExpression, ")", "{",
+{ codeContent, [comment] },
+"}"
+;
+
+booleanExpression =
+expression, operator, expression
+;
+
+functionDeclaration =
+"function", IDENTIFIER, "(", [functionArgs], ")", "{",
+{codeContent},
+"}"
+;
+
+functionArgs =
+expression,
+{ ",", expression }
+;
+
+functionCall =
+IDENTIFIER,
+{ ".", IDENTIFIER },
+"(", [functionCallArgs], ")"
+;
+
+functionCallArgs =
+expression,
+{ ",", expression }
+;
+
+variableModification =
+IDENTIFIER,
+( "=", "+=", "-=", "*=", "/=" ),
+statement,
+";"
+;
+
+elementsDeclaration =
+"<", IDENTIFIER, {elementAttribute},
+(
+">", content, "</", IDENTIFIER, ">"
+| "/>"
+)
+;
+
+elementAttribute =
+IDENTIFIER, "=", (embeddedStatement | stringType)
+;
+
+content =
+{elementsDeclaration
+| embeddedStatement
+| textContent}
+;
+
+embeddedStatement =
+embeddedIf
+| "{{", expression, "}}"
+;
+
+embeddedIf =
+"{{", "if", embeddedIfStatement, "}}",
+[content],
+{embeddedElseIf},
+[embeddedElse],
+"{{", "/if", "}}"
+;
+
+embeddedElseIf =
+"{{", "else if", embeddedIfStatement, "}}",
+[content]
+;
+
+embeddedElse =
+"{{", "else", [embeddedIfStatement], "}}",
+[content]
+;
+
+embeddedIfStatement =
+"(", booleanExpression, ")"
+;
+
+expression =
+functionCall
+| embeddedIfStatement
+| variableTypes
+| IDENTIFIER
+;
+
+variableTypes =
+INT
+| stringType
+| BOOL
+;
+
+stringType =
+QUOTE, STRING, QUOTE
+;
+
+textContent =
+TEXT
+;
+
+operator =
+"+" | "-" | "*" | "/" | "%"
+| "&&" | "||" | "!"
+| "===" | "!==" | "<" | "<=" | ">" | ">="
+;
+
+IDENTIFIER =
+[a-zA-Z_], { [a-zA-Z0-9_] }
+;
+
+STRING =
+{ [^"] }
+;
+
+QUOTE =
+"'" | '"'
+;
+
+INT =
+{ [0-9] }
+;
+
+BOOL =
+"true" | "false"
+;
+
+TEXT =
+{[^<{]+}
+;
+
+COMMENT_TEXT =
+{ [^\n]* }
+;
