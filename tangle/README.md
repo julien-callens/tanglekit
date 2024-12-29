@@ -1,3 +1,7 @@
+Below is an **updated `README.md`** that reflects the **latest simplified grammar** you’ve provided. This includes adjustments so that `<code>` blocks only allow **variable declarations** and removes references to complex statements (like `if` statements, function calls, etc.) in the `<code>` block. The **HTML-like portion** still supports **embedded expressions** (`{{ expression }}`), which can be **integers**, **booleans**, **strings**, or **names**.
+
+---
+
 # TangleKit
 
 **An easy-to-use JS framework based on `.tngl` files**
@@ -7,10 +11,10 @@ components. Each **`.tngl`** file can include:
 
 1. An **optional** `<import>` block to import components or styles.
 2. An **optional** `<props>` block to define which props (variables) can be passed in.
-3. An **optional** `<code>` block with JavaScript-like syntax for logic, functions, conditionals, etc.
-4. A **required** HTML-like block that supports embedded dynamic expressions and logic.
+3. An **optional** `<code>` block with **simple** JavaScript-like variable declarations.
+4. A **required** HTML-like block that supports **embedded expressions**.
 
-For a EBNF grammar of the `.tngl` files, check out the [Tangle Parser](./src/g4/TangleParser.g4)
+For an EBNF grammar of the `.tngl` files, check out the [Tangle Parser](./src/g4/TangleParser.g4)  
 and [Tangle Lexer](./src/g4/TangleLexer.g4) files.
 
 Or check out the [Tangle EBNF](./TangleEBNF.ebnf) file for a more readable version of the grammar.
@@ -86,7 +90,7 @@ components. Each file can contain up to four blocks:
 4. **HTML-like** syntax (required)
 
 > **Note**  
-> **`.tngl`** files are always named with CamelCase and export this name as a function for use in normal js code.
+> **`.tngl`** files are always named with CamelCase and export this name as a function for use in normal JS code.
 
 Below is an overview of each block and its usage.
 
@@ -94,11 +98,10 @@ Below is an overview of each block and its usage.
 
 ### 1) `<import>` Block
 
-```
+```jsx
 <import>
-    "./styles.css";
-    NestedComponent from './NestedComponent.tngl';
-    AnotherNestedComponent from './AnotherNestedComponent.tngl';
+  "./styles.css";
+  NestedComponent from './NestedComponent.tngl';
 </import>
 ```
 
@@ -111,10 +114,10 @@ Below is an overview of each block and its usage.
 
 ### 2) `<props>` Block
 
-```
+```jsx
 <props>
-    let optionalProp = "I am optional";
-    let requiredProp;
+  let optionalProp = "I am optional";
+  let requiredProp;
 </props>
 ```
 
@@ -126,64 +129,23 @@ These become **exported** properties on the component, so that parent components
 `<MyComponent requiredProp="..." />`.
 
 > **Note**  
-> **`children`** is a special prop that can be exported. This then supposed to be used in a non-self-closing
-> component.  
-> `<MyComponent requiredProp="..." >I am the children passed</MyComponent>`
+> **`children`** is a special prop that can be exported if you plan to receive child content.
 
 ---
 
 ### 3) `<code>` Block
 
-```
+```jsx
 <code>
-    let counter = 0;
-    
-    if (counter < 5) {
-        counter++;
-    }
-
-    function add(a, b) {
-        return a + b;
-    }
-
-    // Comments are allowed
+  let total = 0;
+  const label = "Hello TangleKit";
 </code>
 ```
 
-- Contains **JavaScript-like** logic.
-- You can declare variables (`let`, `const`), define functions, run conditionals, etc.
-- These variables and functions become **private** to the component unless used in your HTML-like block to bind data or
+- Contains **only variable declarations** in this simplified grammar.
+- You can declare variables (`let`, `const`), optionally assign a value, and terminate with a semicolon.
+- These variables become **private** to the component unless used in your HTML-like block to bind data or
   handle events.
-- TangleKit supports **single-line comments** (introduced by `//`) and typical assignments, increments (`counter++`),
-  function calls, etc.
-
-#### **If Statements**
-
-```js
-if (counter < 5) {
-  counter++;
-}
-```
-
-#### **Function Declarations**
-
-```js
-function doSomething() {
-  // ...
-}
-```
-
-#### **Variable Modification**
-
-```js
-count += 1;
-```
-
-#### **Function Calls**
-
-```js
-doSomething();
-```
 
 ---
 
@@ -192,42 +154,21 @@ doSomething();
 Finally, each `.tngl` file **must** contain an **HTML-like block** that TangleKit will render. For example:
 
 ```jsx
-<div class={{ mainClass }}>
-  <h1> Hello, {{ userName }} </h1>
-  
-  {{ if (counter > 5) }}
-    <p>The counter is above five!</p>
-  {{ else if (counter === 5) }}
-    <p>The counter is exactly five!</p>
-  {{ else }}
-    <p>The counter is below five.</p>
-  {{ /if }}
+<div class="container">
+  Hello, {{ label }}
 </div>
 ```
 
-Within this HTML-like syntax, you can use:
+Within this HTML-like syntax, you can:
 
-- **`{{ expression }}`** to **inject dynamic data** (e.g., `{{ userName }}`).
-- **Embedded conditionals**:
-  ```jsx
-  {{ if (someCondition) }}
-    <span>Condition is true</span>
-  {{ else }}
-    <span>Condition is false</span>
-  {{ /if }}
-  ```
-- **Pass attributes** that can also be dynamic:
-  ```jsx
-  <div class={{ dynamicClass }}>
-    ...
-  </div>
-  ```
+- Use **`{{ expression }}`** to **inject dynamic data** (e.g., `{{ label }}`).
+    - In the simplified grammar, an **expression** can be an **integer**, a **string**, a **boolean**, or a **name** (variable).
 
 #### Nesting Components
 
-If you imported a component `NestedComponent` from `./NestedComponent.tngl`, you can directly use it:
+If you imported a component `NestedComponent` from `./NestedComponent.tngl`, you can directly use it in your HTML:
 
-```html
+```jsx
 <NestedComponent someProp="hello" />
 ```
 
@@ -235,7 +176,7 @@ If you imported a component `NestedComponent` from `./NestedComponent.tngl`, you
 
 You can also use self-closing elements:
 
-```html
+```jsx
 <img src="./image.png" />
 ```
 
@@ -243,53 +184,39 @@ You can also use self-closing elements:
 
 ### Syntax Overview
 
-TangleKit’s grammar supports the following constructs inside `<code>` or embedded statements:
+Since the grammar is **simplified**, here’s a quick summary:
 
-1. **Variable Declarations**
-   ```js
-   let value = 5;
-   const label = "Hello";
+1. **Imports** (`<import>`):
+   ```jsx
+   <import>
+     "./styles.css";
+     NestedComponent from './NestedComponent.tngl';
+   </import>
    ```
-2. **Conditionals**
-    - **Non-embedded** in `<code>`:
-      ```js
-      if (condition) {
-        // ...
-      }
-      ```
-    - **Embedded** in HTML:
-      ```html
-      {{ if (booleanExpression) }}
-        ...
-      {{ else if (anotherCondition) }}
-        ...
-      {{ else }}
-        ...
-      {{ /if }}
-      ```
-3. **Functions**
-   ```js
-   function add(a, b) {
-     return a + b;
-   }
+2. **Props** (`<props>`):
+   ```jsx
+   <props>
+     let optionalMessage = "Welcome to TangleKit";
+     let requiredCount;
+   </props>
    ```
-4. **Function Calls**
-   ```js
-   add(5, 3);
+3. **Code** (`<code>`):
+   ```jsx
+   <code>
+     let localVar = 10;
+     const anotherVar = "Value";
+   </code>
    ```
-5. **Increment/Decrement**
-   ```js
-   counter++;
-   anotherVar--;
+4. **Elements** (HTML-like):
+   ```jsx
+   <div>
+     <p>{{ localVar }}</p>
+   </div>
    ```
-6. **Operators**
-    - **Arithmetic**: `+ - * / %`
-    - **Logical**: `&& || !`
-    - **Comparison**: `=== !== < <= > >=`
-7. **Variable Types**
-    - **Integers** (e.g., `123`)
-    - **Booleans** (`true` / `false`)
-    - **Strings** (`"Hello"`, `'World'`)
+    - **Attributes**:  
+      `<p class="myClass" id={{ anotherVar }}>...</p>`
+    - **Embedded Expressions**:  
+      `{{ anotherVar }}` can be `int`, `bool`, `string`, or a variable name.
 
 ---
 
@@ -304,50 +231,33 @@ A small `.tngl` snippet demonstrating **all** sections:
 </import>
 
 <props>
-  let optionalMessage = "Welcome to TangleKit";
-  let requiredCount;
+  let title = "Welcome";
+  let count;
 </props>
 
 <code>
-  // We'll keep track of clicks
-  let clicks = 0;
-
-  function increment() {
-    clicks++;
-    console.log("Clicked, total = ", clicks);
-  }
-
-  if (requiredCount < 10) {
-    requiredCount++;
-  }
+  let anotherVar = 42;
 </code>
 
-<div>
-  <h2>{{ optionalMessage }}</h2>
-  <p>Count = {{ requiredCount }}</p>
-  <p>Clicks = {{ clicks }}</p>
-
-  <button onClick={{ increment }}>Click me</button>
-
-  {{ if (requiredCount > 5) }}
-    <NestedComponent someProp="Yes, it's above 5" />
-  {{ else }}
-    <NestedComponent someProp="No, it's 5 or below" />
-  {{ /if }}
+<div class="rootContainer">
+  <h2>{{ title }}</h2>
+  <p>Count = {{ count }}</p>
+  <p>Another Var = {{ anotherVar }}</p>
+  <NestedComponent />
 </div>
 ```
 
 In this example:
 
 - We **import** a CSS file and a nested component.
-- We define **two props** (`optionalMessage`, `requiredCount`).
-- We have **some code** to track clicks and increment `clicks`.
-- Our HTML-like portion includes **dynamic placeholders** (`{{ ... }}`), an **embedded if**, and usage of
+- We define **two props** (`title`, `count`).
+- We have a `<code>` block with a **single** variable declaration (`anotherVar`).
+- The **HTML** portion shows how to reference `title`, `count`, and `anotherVar`, plus the usage of
   `<NestedComponent>`.
 
 ---
 
-## Exmaple Output
+## Example Output
 
 Basic input `.tngl` file:
 
@@ -430,6 +340,8 @@ export default function BasicSyntax() {
     return sQPZhoBT;
 }
 ```
+
+---
 
 ## Credits
 

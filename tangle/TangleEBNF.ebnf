@@ -1,200 +1,95 @@
 document =
-[importDeclaration],
-[propsDeclaration],
-[codeDeclaration],
-elementsDeclaration
-;
+    [importDeclaration],
+    [propsDeclaration],
+    [codeDeclaration],
+    elementsDeclaration
+    ;
 
 importDeclaration =
-"<import>",
-{importStatement},
-"</import>"
-;
+    "<import>",
+    {importStatement},
+    "</import>"
+    ;
 
 importStatement =
-componentImport
-| styleImport
-;
+    componentImport
+    | styleImport
+    ;
 
 componentImport =
-IDENTIFIER,
-"from",
-QUOTE, STRING, QUOTE,
-";"
-;
+    IDENTIFIER, "from", QUOTE, STRING, QUOTE, ";"
+    ;
 
 styleImport =
-QUOTE, STRING, QUOTE,
-";"
-;
+    QUOTE, STRING, QUOTE, ";"
+    ;
 
 propsDeclaration =
-"<props>",
-{variableDeclaration},
-"</props>"
-;
+    "<props>",
+    {variableDeclaration},
+    "</props>"
+    ;
 
 variableDeclaration =
-( "let" | "const" ),
-IDENTIFIER,
-[ "=", statement ],
-";"
-;
+    ( "let" | "const" ), IDENTIFIER, [ "=", statement ], ";"
+    ;
 
-codeDeclaration =
-"<code>",
-{ codeContent, [comment] },
-"</code>"
-;
-
-codeContent =
-comment
-| variableDeclaration
-| ifStatement
-| functionDeclaration
-| functionCall, ";"
-| variableModification
-;
-
-comment =
-"//", COMMENT_TEXT, "\n"
-;
-
-ifStatement =
-"if", "(", booleanExpression, ")", "{",
-{ codeContent, [comment] },
-"}"
-;
-
-booleanExpression =
-expression, operator, expression
-;
-
-functionDeclaration =
-"function", IDENTIFIER, "(", [functionArgs], ")", "{",
-{codeContent},
-"}"
-;
-
-functionArgs =
-expression,
-{ ",", expression }
-;
-
-functionCall =
-IDENTIFIER,
-{ ".", IDENTIFIER },
-"(", [functionCallArgs], ")"
-;
-
-functionCallArgs =
-expression,
-{ ",", expression }
-;
-
-variableModification =
-IDENTIFIER,
-( "=", "+=", "-=", "*=", "/=" ),
-statement,
-";"
-;
-
-elementsDeclaration =
-"<", IDENTIFIER, {elementAttribute},
-(
-">", content, "</", IDENTIFIER, ">"
-| "/>"
-)
-;
-
-elementAttribute =
-IDENTIFIER, "=", (embeddedStatement | stringType)
-;
-
-content =
-{elementsDeclaration
-| embeddedStatement
-| textContent}
-;
-
-embeddedStatement =
-embeddedIf
-| "{{", expression, "}}"
-;
-
-embeddedIf =
-"{{", "if", embeddedIfStatement, "}}",
-[content],
-{embeddedElseIf},
-[embeddedElse],
-"{{", "/if", "}}"
-;
-
-embeddedElseIf =
-"{{", "else if", embeddedIfStatement, "}}",
-[content]
-;
-
-embeddedElse =
-"{{", "else", [embeddedIfStatement], "}}",
-[content]
-;
-
-embeddedIfStatement =
-"(", booleanExpression, ")"
-;
-
-expression =
-functionCall
-| embeddedIfStatement
-| variableTypes
-| IDENTIFIER
-;
+statement =
+    variableTypes
+    ;
 
 variableTypes =
-INT
-| stringType
-| BOOL
-;
+    INT
+    | stringType
+    | BOOL
+    ;
 
 stringType =
-QUOTE, STRING, QUOTE
-;
+    QUOTE, STRING, QUOTE
+    ;
+
+codeDeclaration =
+    "<code>",
+    {codeContent},
+    "</code>"
+    ;
+
+codeContent =
+    variableDeclaration
+    ;
+
+elementsDeclaration =
+    "<", IDENTIFIER, {elementAttribute},
+    (
+        ">", content, "</", IDENTIFIER, ">"
+        | "/>"
+    )
+    ;
+
+elementAttribute =
+    IDENTIFIER, "=", (embeddedStatement | stringType)
+    ;
+
+content =
+    { elementsDeclaration
+    | embeddedStatement
+    | textContent }
+    ;
+
+embeddedStatement =
+    "{{", expression, "}}"
+    ;
+
+expression =
+    variableTypes
+    | IDENTIFIER
+    ;
 
 textContent =
-TEXT
-;
+    TEXT
+    ;
+> **Note**
+> **`children`** is a special prop that can be exported. This then supposed to be used in a non-self-closing
+> component.
+> `<MyComponent requiredProp="..." >I am the children passed</MyComponent>`
 
-operator =
-"+" | "-" | "*" | "/" | "%"
-| "&&" | "||" | "!"
-| "===" | "!==" | "<" | "<=" | ">" | ">="
-;
-
-IDENTIFIER =
-[a-zA-Z_], { [a-zA-Z0-9_] }
-;
-
-STRING =
-{ [^"] }
-;
-
-QUOTE =
-"'" | '"'
-;
-
-INT =
-{ [0-9] }
-;
-
-BOOL =
-"true" | "false"
-;
-
-TEXT =
-{[^<{]+}
-;
-
-COMMENT_TEXT =
-{ [^\n]* }
-;
