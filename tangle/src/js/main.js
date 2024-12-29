@@ -23,6 +23,18 @@ export function compileTangleToAST(sourceCode) {
             const errorMsg = `Syntax Error at line ${line}:${column} - ${msg}`;
             this.errors.push(errorMsg);
         }
+
+        // extra methods to help with reporting when developing
+        // required by the interface, but we don't need them
+
+        reportAmbiguity(recognizer, dfa, startIndex, stopIndex, exact, ambigAlts, configs) {
+        }
+
+        reportAttemptingFullContext(recognizer, dfa, startIndex, stopIndex, conflictingAlts, configs) {
+        }
+
+        reportContextSensitivity(recognizer, dfa, startIndex, stopIndex, prediction, configs) {
+        }
     }
 
     const errorListener = new TangleErrorListener();
@@ -53,11 +65,21 @@ export function generateJS(ast, filePath) {
 
     let output = "";
 
-    output += formatImports(imports);
+    const formattedImports = formatImports(imports);
 
-    const propsOutput = formatProps(props) ? `{${formatProps(props)}}` : "";
+    output += formattedImports.imports;
+
+    const formattedProps = formatProps(props)
+
+    const propsOutput = formattedProps ? `{${formattedProps.props}}` : "";
 
     output += `export default function ${componentName}(${propsOutput}) {\n`;
+
+    output += formattedImports.styles;
+
+    if (formattedProps && formattedProps.seededProps) {
+        output += formattedProps.seededProps.map((prop) => `${prop.name} = ${prop.value};\n`).join("");
+    }
 
     output += formatCode(code);
 

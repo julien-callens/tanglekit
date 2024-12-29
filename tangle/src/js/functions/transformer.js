@@ -1,14 +1,23 @@
 import {formatProps, transformValue, validatePropsForElement} from "./componentFunctions.js";
 import {generateName} from "./helperFunctions.js";
 
+function formatOnClick(attribute, name) {
+    let content = attribute.content;
+    return `${name}.addEventListener('click', () => {${transformValue(content.type, content)}});\n`;
+}
+
 export const elementTransformer = {
     element: (element, startName, ctx) => {
         const name = startName || generateName();
         let output = `\nconst ${name} = document.createElement('${element.tagName}');\n`;
 
         for (const attribute of element.attributes) {
-            const transformedValue = transformValue(attribute.attributeType, attribute.content, true);
-            output += `${name}.setAttribute('${attribute.name}', ${transformedValue});\n`;
+            if (attribute.name === "onClick") {
+                output += formatOnClick(attribute, name);
+            } else {
+                const transformedValue = transformValue(attribute.attributeType, attribute.content, true);
+                output += `${name}.setAttribute('${attribute.name}', ${transformedValue});\n`;
+            }
         }
 
         for (const child of element.children) {
@@ -33,12 +42,16 @@ export const elementTransformer = {
 
                 case "embeddedStatement":
                     if (child.expression.value === "children") {
-                        output += `children.forEach((child) => {\n`;
-                        output += `${name}.appendChild(child());\n`;
+                        output += `children.forEach((ch) => {\n`;
+                        output += `${name}.appendChild(ch());\n`;
                         output += "});\n";
-                        break;
+                    } else {
+                        output += `${name}.innerHTML += ${transformValue(child.expression.type, child.expression.value)};\n`;
                     }
-                    output += `${name}.innerHTML += ${transformValue(child.expression.type, child.expression.value)};\n`;
+                    break;
+
+                case "embeddedIf":
+                    output += generateEmbeddedIf(child, name, ctx);
                     break;
 
                 default:
@@ -66,6 +79,85 @@ export const elementTransformer = {
         return formatComponent(element, ctx);
     }
 };
+
+function generateEmbeddedIf(node, parentName, ctx) {
+    let output = "";
+
+    if (node.ifBranch) {
+        const conditionStr = generateCondition(node.ifBranch.condition);
+        output += `if (${conditionStr}) {\n`;
+        output += generateEmbeddedIfContent(node.ifBranch.content, parentName, ctx);
+        output += `}\n`;
+    }
+
+    if (node.elseIfBranches && node.elseIfBranches.length > 0) {
+        node.elseIfBranches.forEach((elif) => {
+            const elifConditionStr = generateCondition(elif.condition);
+            output += `else if (${elifConditionStr}) {\n`;
+            output += generateEmbeddedIfContent(elif.content, parentName, ctx);
+            output += `}\n`;
+        });
+    }
+
+    if (node.elseBranch && node.elseBranch.content && node.elseBranch.content.length > 0) {
+        output += `else {\n`;
+        output += generateEmbeddedIfContent(node.elseBranch.content, parentName, ctx);
+        output += `}\n`;
+    }
+
+    return output;
+}
+
+function generateEmbeddedIfContent(contentArray, parentName, ctx) {
+    let output = "";
+    for (const contentNode of contentArray) {
+        const isComponent = isComponentChild(contentNode, ctx);
+
+        switch (contentNode.type) {
+            case "element":
+                if (isComponent) {
+                    const componentImport = ctx.imports.find((imp) => imp.id === contentNode.tagName);
+                    output += elementTransformer.component(contentNode, componentImport, ctx);
+                    output += `${parentName}.appendChild(${contentNode.tagName.toLowerCase()});\n`;
+                } else {
+                    const elementName = generateName();
+                    output += elementTransformer.element(contentNode, elementName, ctx);
+                    output += `${parentName}.appendChild(${elementName});\n`;
+                }
+                break;
+
+            case "text":
+                output += `${parentName}.innerHTML += ${transformValue(contentNode.type, contentNode.value, true)};\n`;
+                break;
+
+            case "embeddedStatement":
+                if (contentNode.expression.value === "children") {
+                    output += `children.forEach((ch) => {\n`;
+                    output += `${parentName}.appendChild(ch());\n`;
+                    output += "});\n";
+                } else {
+                    output += `${parentName}.innerHTML += ${transformValue(
+                        contentNode.expression.type,
+                        contentNode.expression.value
+                    )};\n`;
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
+    return output;
+}
+
+function generateCondition(booleanExpression) {
+    if (!booleanExpression) return "true";
+    const left = transformValue(booleanExpression.left.type, booleanExpression.left.value);
+    const op = booleanExpression.operator;
+    const right = transformValue(booleanExpression.right.type, booleanExpression.right.value);
+    return `${left} ${op} ${right}`;
+}
+
 
 function formatComponent(element, ctx) {
     let output = `\nconst ${element.tagName.toLowerCase()} = ${element.tagName}(`;

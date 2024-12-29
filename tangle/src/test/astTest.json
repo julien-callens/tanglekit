@@ -1,0 +1,136 @@
+{
+  "imports": [
+    {
+      "type": "styleImport",
+      "path": "./styles.css"
+    },
+    {
+      "type": "componentImport",
+      "id": "NestedComponent",
+      "path": "./NestedComponent.tngl"
+    },
+    {
+      "type": "componentImport",
+      "id": "AnotherNestedComponent",
+      "path": "./AnotherNestedComponent.tngl"
+    }
+  ],
+  "props": [],
+  "code": [
+    {
+      "type": "variableDeclaration",
+      "varDef": "let",
+      "name": "variable",
+      "assignedType": "string",
+      "value": "balls"
+    }
+  ],
+  "elements": {
+    "type": "element",
+    "tagName": "div",
+    "attributes": [
+      {
+        "type": "attribute",
+        "name": "class",
+        "attributeType": "string",
+        "content": "randomClass"
+      }
+    ],
+    "children": [
+      {
+        "type": "element",
+        "tagName": "p",
+        "attributes": [
+          {
+            "type": "attribute",
+            "name": "class",
+            "attributeType": "embeddedStatement",
+            "content": {
+              "type": "name",
+              "value": "variable"
+            }
+          }
+        ],
+        "children": [
+          {
+            "type": "text",
+            "value": "variable: "
+          },
+          {
+            "type": "embeddedStatement",
+            "expression": {
+              "type": "name",
+              "value": "variable"
+            }
+          }
+        ]
+      },
+      {
+        "type": "element",
+        "tagName": "NestedComponent",
+        "attributes": [
+          {
+            "type": "attribute",
+            "name": "prop",
+            "attributeType": "string",
+            "content": "beans"
+          },
+          {
+            "type": "attribute",
+            "name": "prop2",
+            "attributeType": "embeddedStatement",
+            "content": {
+              "type": "name",
+              "value": "variable"
+            }
+          }
+        ],
+        "children": []
+      },
+      {
+        "type": "element",
+        "tagName": "AnotherNestedComponent",
+        "attributes": [],
+        "children": [
+          {
+            "type": "element",
+            "tagName": "p",
+            "attributes": [],
+            "children": [
+              {
+                "type": "text",
+                "value": "content of AnotherNestedComponent"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "value": " test "
+          },
+          {
+            "type": "element",
+            "tagName": "AnotherNestedComponent",
+            "attributes": [],
+            "children": [
+              {
+                "type": "element",
+                "tagName": "p",
+                "attributes": [],
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "content of AnotherNestedComponent"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "value": " test "
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

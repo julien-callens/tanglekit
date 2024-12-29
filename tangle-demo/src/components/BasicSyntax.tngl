@@ -1,16 +1,42 @@
 <import>
-    "./styles.css";
+    "testStyles.css";
     NestedComponent from './NestedComponent.tngl';
     AnotherNestedComponent from './AnotherNestedComponent.tngl';
-    Julien from './Julien.tngl';
 </import>
 
+<props>
+  let optionalMessage = "Welcome to TangleKit";
+  let requiredCount;
+</props>
+
 <code>
-    let variable = 'beans';
+  let clicks = 0;
+
+  function increment() {
+    clicks += 1;
+    console.log("Clicked, total = ", clicks);
+  }
+
+  if (requiredCount < 10) {
+    requiredCount += 1;
+  }
 </code>
 
-<div class='randomClass'>
-        <p class={{variable}}>variable: {{variable}}</p>
-        <NestedComponent prop2={{variable}}/>
-        <Julien/>
+<div>
+  <h2>{{ optionalMessage }}</h2>
+  <p>Count = {{ requiredCount }}</p>
+  <p>Clicks = {{ clicks }}</p>
+
+  <button onClick={{ increment() }}>Click me</button>
+
+  {{ if (requiredCount > 5) }}
+    <AnotherNestedComponent>
+        <p>Count is greater than 5</p>
+    </AnotherNestedComponent>
+  {{ else }}
+    <p>Count is less than or equal to 5</p>
+  {{ /if }}
+
+  <h2>Here is a NestedComponent</h2>
+        <NestedComponent />
 </div>

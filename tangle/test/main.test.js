@@ -4,35 +4,44 @@ import {compileTangleToAST} from "../src/js/main.js";
 
 test("full syntax e2e test", async () => {
     let generatedJS = await processTangleFile("test/examples/BasicSyntax.tngl");
-    expect(generatedJS).toBe(`import NestedComponent from './NestedComponent.tngl';
-import AnotherNestedComponent from './AnotherNestedComponent.tngl';
-export default function BasicSyntax() {
+    expect(generatedJS).toBe(`export default function BasicSyntax() {
+const gKEtnNWj = document.createElement('link');
+gKEtnNWj.rel = 'stylesheet';
+gKEtnNWj.href = './styles.css';
+document.head.appendChild(gKEtnNWj);
 let variable = "balls";
 
-const SqJBlfdq = document.createElement('div');
-SqJBlfdq.setAttribute('class', "randomClass");
+const rZuCyZTK = document.createElement('div');
+rZuCyZTK.setAttribute('class', "randomClass");
 
-const gKEtnNWj = document.createElement('p');
-gKEtnNWj.setAttribute('class', variable);
-gKEtnNWj.innerHTML += "variable: ";
-gKEtnNWj.innerHTML += variable;
-SqJBlfdq.appendChild(gKEtnNWj);
-
-const nestedcomponent = NestedComponent({prop: null, prop2: variable});
-SqJBlfdq.appendChild(nestedcomponent);
-
-const anothernestedcomponent = AnotherNestedComponent({children: [() => {
-const rZuCyZTK = document.createElement('p');
-rZuCyZTK.innerHTML += "content of AnotherNestedComponent";
-return rZuCyZTK}, () => {return document.createTextNode(" test ")}, () => {
-const anothernestedcomponent = AnotherNestedComponent({children: [() => {
 const XYitJizj = document.createElement('p');
-XYitJizj.innerHTML += "content of AnotherNestedComponent";
-return XYitJizj}, () => {return document.createTextNode(" test ")}, ]});
-return anothernestedcomponent}, ]});
-SqJBlfdq.appendChild(anothernestedcomponent);
+XYitJizj.setAttribute('class', variable);
+XYitJizj.innerHTML += "variable: ";
+XYitJizj.innerHTML += variable;
+rZuCyZTK.appendChild(XYitJizj);
 
-return SqJBlfdq;
+const ETraXmRb = document.createElement('NestedComponent');
+ETraXmRb.setAttribute('prop', "beans");
+ETraXmRb.setAttribute('prop2', variable);
+rZuCyZTK.appendChild(ETraXmRb);
+
+const tcrgQvhF = document.createElement('AnotherNestedComponent');
+
+const PWabZPxu = document.createElement('p');
+PWabZPxu.innerHTML += "content of AnotherNestedComponent";
+tcrgQvhF.appendChild(PWabZPxu);
+tcrgQvhF.innerHTML += " test ";
+
+const IYMzvhUM = document.createElement('AnotherNestedComponent');
+
+const HECcvDXr = document.createElement('p');
+HECcvDXr.innerHTML += "content of AnotherNestedComponent";
+IYMzvhUM.appendChild(HECcvDXr);
+IYMzvhUM.innerHTML += " test ";
+tcrgQvhF.appendChild(IYMzvhUM);
+rZuCyZTK.appendChild(tcrgQvhF);
+
+return rZuCyZTK;
 }
 `);
 });
@@ -62,20 +71,19 @@ test("ast generation test", async () => {
         </AnotherNestedComponent>
 </div>
 `);
-
     const expectedAst = JSON.parse(`{
   "imports": [
     {
-      "type": "style",
+      "type": "styleImport",
       "path": "./styles.css"
     },
     {
-      "type": "component",
+      "type": "componentImport",
       "id": "NestedComponent",
       "path": "./NestedComponent.tngl"
     },
     {
-      "type": "component",
+      "type": "componentImport",
       "id": "AnotherNestedComponent",
       "path": "./AnotherNestedComponent.tngl"
     }
@@ -207,11 +215,18 @@ test("imports are correctly parsed and transformed", async () => {
     const ast = compileTangleToAST(`<import>
     "./styles.css";
     NestedComponent from './NestedComponent.tngl';
-  </import>`);
+  </import><p>test</p>`);
 
     expect(ast.imports).toStrictEqual([
-        {type: "style", path: "./styles.css"},
-        {type: "component", id: "NestedComponent", path: "./NestedComponent.tngl"}
+        {
+            "type": "styleImport",
+            "path": "./styles.css"
+        },
+        {
+            "type": "componentImport",
+            "id": "NestedComponent",
+            "path": "./NestedComponent.tngl"
+        }
     ]);
 });
 
@@ -219,7 +234,7 @@ test("variable declarations in code blocks", async () => {
     const ast = compileTangleToAST(`<code>
     let variable = 'balls';
     const count = 10;
-  </code>`);
+  </code><p>test</p>`);
 
     expect(ast.code).toStrictEqual([
         {

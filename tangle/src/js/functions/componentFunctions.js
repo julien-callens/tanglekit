@@ -1,6 +1,7 @@
 import {ValidationError} from "../classes/ValidationError.js";
 import path from "node:path";
 import {getAST} from "./astCache.js";
+import {generateName} from "./helperFunctions.js";
 
 export function validateImports(imports, filePath) {
     imports.forEach((imp) => {
@@ -23,13 +24,30 @@ export function validateImports(imports, filePath) {
 
 export function formatImports(imports) {
     let output = "";
+    let styleImports = [];
     for (const imp of imports) {
         if (imp.type === "component") {
             output += `import ${imp.id} from '${imp.path}';\n`;
         } else if (imp.type === "styleImport") {
-            output += `import '${imp.path}';\n`;
+            styleImports.push(imp.path);
         }
     }
+
+    let styleOutput = formatStyleImports(styleImports);
+
+    return {imports: output, styles: styleOutput};
+}
+
+export function formatStyleImports(styleImports) {
+    let output = "";
+    for (const styleImport of styleImports) {
+        let name  = generateName();
+        output += `const ${name} = document.createElement('link');\n`;
+        output += `${name}.rel = 'stylesheet';\n`;
+        output += `${name}.href = '${styleImport}';\n`;
+        output += `document.head.appendChild(${name});\n`;
+    }
+
     return output;
 }
 
@@ -61,18 +79,27 @@ export function validatePropsForElement(element, component) {
 export function formatProps(props, type) {
     if (props !== null && props !== undefined && props.length > 0) {
         let propsContent = "";
+        let seededProps = [];
         props.forEach((prop, index) => {
             if (type === "in") {
                 const value = transformValue(prop.content.type, prop.content.value);
                 propsContent += `${prop.name}: ${value}`;
             } else {
                 propsContent += `${prop.name}`;
+                if (prop.value !== null) {
+                    seededProps.push({name: prop.name, value: transformValue(prop.assignedType, prop.value)});
+                }
             }
             if (index < props.length - 1) {
                 propsContent += ", ";
             }
         });
-        return propsContent;
+
+        if (type === "in") {
+            return propsContent;
+        }
+
+        return {props: propsContent, seededProps: seededProps};
     }
     return "";
 }
@@ -80,15 +107,66 @@ export function formatProps(props, type) {
 export function formatCode(code) {
     let output = "";
     code.forEach((content) => {
-        if (content.type === "variableDeclaration") {
-            output += `${content.varDef} ${content.name} = ${transformValue(content.assignedType, content.value)};\n`;
-        } else if (content.type === "functionDeclaration") {
-            output += `function ${content.name}(${content.args.map((arg) => arg.value).join(", ")}) {\n`;
-            output += `${content.body}\n`;
-            output += "}\n";
+        if (content === null || content === undefined) return;
+        switch (content.type) {
+            case "variableDeclaration":
+                output += `${content.varDef} ${content.name} = ${transformValue(content.assignedType, content.value)};\n`;
+                break;
+
+            case "ifStatement":
+                output += generateIfStatement(content);
+                break;
+
+            case "variableModification":
+                output += `${content.name} ${content.operator} ${transformValue(content.assignedType, content.value)};\n`;
+                break;
+
+            case "functionCall":
+                output += generateFunctionCall(content);
+                break;
+
+            case "comment":
+                output += `// ${content.value}\n`;
+                break;
+
+            case "functionDeclaration":
+                output += `function ${content.name}(${content.args.map(arg => arg.value).join(", ")}) {\n`;
+                if (content.body && Array.isArray(content.body)) {
+                    output += formatCode(content.body);
+                }
+                output += "}\n";
+                break;
+
+            default:
+                output += `// Unhandled node: ${content.type}\n`;
+                break;
         }
     });
+
     return output;
+}
+
+function generateIfStatement(content) {
+    const {condition, body} = content;
+    const ifCondition = generateCondition(condition);
+
+    const bodyCode = formatCode(body);
+
+    return `if (${ifCondition}) {\n${bodyCode}}\n`;
+}
+
+export function generateFunctionCall(callNode) {
+    const fnPath = callNode.functionPath.join(".");
+    const args = callNode.arguments.map(arg => transformValue(arg.type, arg.value)).join(", ");
+    return `${fnPath}(${args});\n`;
+}
+
+function generateCondition(condition) {
+    if (!condition) return "true";
+    const left = transformValue(condition.left.type, condition.left.value);
+    const op = condition.operator;
+    const right = transformValue(condition.right.type, condition.right.value);
+    return `${left} ${op} ${right}`;
 }
 
 export function transformValue(type, value, toHTML = false) {
@@ -101,8 +179,10 @@ export function transformValue(type, value, toHTML = false) {
         case "variable":
         case "bool":
             return toHTML ? `"${value}"` : `${value}`;
+        case "functionCall":
+            return `${generateFunctionCall(value)}`;
         case "embeddedStatement":
-            return transformValue(value.type, value.value);
+            return transformValue(value.type, value.value || value.expression);
         default:
             return null;
     }
