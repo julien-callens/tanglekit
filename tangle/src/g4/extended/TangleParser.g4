@@ -124,11 +124,19 @@ expression
 embeddedIf
     : EMBEDDED_OPEN IF embeddedIfStatement EMBEDDED_CLOSE
     content?
-    ((EMBEDDED_OPEN ELSE_IF embeddedIfStatement? EMBEDDED_CLOSE)
-    content?)*
-    ((EMBEDDED_OPEN ELSE embeddedIfStatement? EMBEDDED_CLOSE)
-    content?)?
+    embeddedElseIf*
+    embeddedElse?
     EMBEDDED_OPEN EMBEDDED_END_IF EMBEDDED_CLOSE
+    ;
+
+embeddedElseIf
+    : EMBEDDED_OPEN ELSE_IF embeddedIfStatement EMBEDDED_CLOSE
+    content?
+    ;
+
+embeddedElse
+    : EMBEDDED_OPEN ELSE embeddedIfStatement? EMBEDDED_CLOSE
+    content?
     ;
 
 functionCall

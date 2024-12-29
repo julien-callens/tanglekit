@@ -63,22 +63,25 @@ export const elementTransformer = {
 
     component: (element, component, ctx) => {
         validatePropsForElement(element, component);
-
-        let output = `\nconst ${element.tagName.toLowerCase()} = ${element.tagName}(`;
-        const props = formatProps(element.attributes, "in");
-
-        const childrenAvailable = element.children && element.children.length > 0;
-        const children = childrenAvailable ? `children: ${formatChildren(element.children, ctx)}` : null;
-
-        if (props || children) {
-            const combinedProps = [props, children].filter(Boolean).join(", ");
-            output += `{${combinedProps}}`;
-        }
-
-        output += ");\n";
-        return output;
+        return formatComponent(element, ctx);
     }
 };
+
+function formatComponent(element, ctx) {
+    let output = `\nconst ${element.tagName.toLowerCase()} = ${element.tagName}(`;
+    const props = formatProps(element.attributes, "in");
+
+    const childrenAvailable = element.children && element.children.length > 0;
+    const children = childrenAvailable ? `children: ${formatChildren(element.children, ctx)}` : null;
+
+    if (props || children) {
+        const combinedProps = [props, children].filter(Boolean).join(", ");
+        output += `{${combinedProps}}`;
+    }
+
+    output += ");\n";
+    return output;
+}
 
 function isComponentChild(child, ctx) {
     return !!ctx?.imports.find((imp) => (imp.id === child.tagName) && (imp.type === "component"));

@@ -2,6 +2,7 @@
     "./styles.css";
     NestedComponent from './NestedComponent.tngl';
     AnotherNestedComponent from './AnotherNestedComponent.tngl';
+    Julien from './Julien.tngl';
 </import>
 
 <code>
@@ -10,14 +11,6 @@
 
 <div class='randomClass'>
         <p class={{variable}}>variable: {{variable}}</p>
-
-        <NestedComponent prop="beans" prop2={{variable}} />
-        <AnotherNestedComponent>
-            <p>content of AnotherNestedComponent</p>
-            test
-            <AnotherNestedComponent>
-                        <p>content of AnotherNestedComponent</p>
-                        test
-                    </AnotherNestedComponent>
-        </AnotherNestedComponent>
+        <NestedComponent prop2={{variable}}/>
+        <Julien/>
 </div>
