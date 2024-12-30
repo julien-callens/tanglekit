@@ -139,7 +139,7 @@ These become **exported** properties on the component, so that parent components
     let counter = 0;
     
     if (counter < 5) {
-        counter++;
+        counter += 1;
     }
 
     function add(a, b) {
@@ -161,7 +161,7 @@ These become **exported** properties on the component, so that parent components
 
 ```js
 if (counter < 5) {
-  counter++;
+  counter += 1;
 }
 ```
 
@@ -279,7 +279,7 @@ TangleKit’s grammar supports the following constructs inside `<code>` or embed
    ```
 5. **Increment/Decrement**
    ```js
-   counter++;
+   counter += 1;
    anotherVar--;
    ```
 6. **Operators**
@@ -313,12 +313,12 @@ A small `.tngl` snippet demonstrating **all** sections:
   let clicks = 0;
 
   function increment() {
-    clicks++;
+    clicks += 1;
     console.log("Clicked, total = ", clicks);
   }
 
   if (requiredCount < 10) {
-    requiredCount++;
+    requiredCount += 1;
   }
 </code>
 
