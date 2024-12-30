@@ -176,7 +176,7 @@ function formatComponent(element, ctx) {
 }
 
 function isComponentChild(child, ctx) {
-    return !!ctx?.imports.find((imp) => (imp.id === child.tagName) && (imp.type === "component"));
+    return !!ctx?.imports.find((imp) => (imp.id === child.tagName) && (imp.type === "componentImport"));
 }
 
 function formatChildren(children, ctx) {

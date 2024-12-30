@@ -5,7 +5,7 @@ import {generateName} from "./helperFunctions.js";
 
 export function validateImports(imports, filePath) {
     imports.forEach((imp) => {
-        if (imp.type === "component") {
+        if (imp.type === "componentImport") {
             const componentPath = path.resolve(path.dirname(filePath), imp.path);
             const componentAST = getAST(componentPath);
 
@@ -26,7 +26,7 @@ export function formatImports(imports) {
     let output = "";
     let styleImports = [];
     for (const imp of imports) {
-        if (imp.type === "component") {
+        if (imp.type === "componentImport") {
             output += `import ${imp.id} from '${imp.path}';\n`;
         } else if (imp.type === "styleImport") {
             styleImports.push(imp.path);
