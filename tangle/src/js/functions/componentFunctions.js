@@ -82,7 +82,7 @@ export function formatProps(props, type) {
         let seededProps = [];
         props.forEach((prop, index) => {
             if (type === "in") {
-                const value = transformValue(prop.content.type, prop.content.value);
+                const value = transformValue(prop.attributeType, prop.content);
                 propsContent += `${prop.name}: ${value}`;
             } else {
                 propsContent += `${prop.name}`;

@@ -38,5 +38,5 @@
   {{ /if }}
 
   <h2>Here is a NestedComponent</h2>
-        <NestedComponent prop2="this value has been passed with props"/>
+  <NestedComponent prop2="this value has been passed with props"/>
 </div>
