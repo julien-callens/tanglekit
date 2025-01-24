@@ -1,8 +1,8 @@
-# PROGRAMMEREN 3: JS-FRAMEWORK
+###### PROGRAMMEREN 3: JS-FRAMEWORK
+# TangleKit
+[![npm](https://img.shields.io/npm/v/tanglekit)](https://www.npmjs.com/package/tanglekit)
 
-## TangleKit
-
-A JS framework made in the image of svelte with custom `.tngl` files. 
+**A JS framework made in the image of svelte with custom `.tngl` files.**
 
 - It has a vite plugin for ease of use.
 - The framework is made so it outputs formatted html which can be easily added to the dom.
