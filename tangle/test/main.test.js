@@ -4,7 +4,9 @@ import {compileTangleToAST} from "../src/js/main.js";
 
 test("full syntax e2e test", async () => {
     let generatedJS = await processTangleFile("test/examples/BasicSyntax.tngl");
-    expect(generatedJS).toBe(`export default function BasicSyntax() {
+    expect(generatedJS).toBe(`import NestedComponent from './NestedComponent.tngl';
+import AnotherNestedComponent from './AnotherNestedComponent.tngl';
+export default function BasicSyntax() {
 const gKEtnNWj = document.createElement('link');
 gKEtnNWj.rel = 'stylesheet';
 gKEtnNWj.href = './styles.css';
@@ -20,26 +22,19 @@ XYitJizj.innerHTML += "variable: ";
 XYitJizj.innerHTML += variable;
 rZuCyZTK.appendChild(XYitJizj);
 
-const ETraXmRb = document.createElement('NestedComponent');
-ETraXmRb.setAttribute('prop', "beans");
-ETraXmRb.setAttribute('prop2', variable);
-rZuCyZTK.appendChild(ETraXmRb);
+const nestedcomponent = NestedComponent({prop: "beans", prop2: variable});
+rZuCyZTK.appendChild(nestedcomponent);
 
-const tcrgQvhF = document.createElement('AnotherNestedComponent');
-
-const PWabZPxu = document.createElement('p');
-PWabZPxu.innerHTML += "content of AnotherNestedComponent";
-tcrgQvhF.appendChild(PWabZPxu);
-tcrgQvhF.innerHTML += " test ";
-
-const IYMzvhUM = document.createElement('AnotherNestedComponent');
-
-const HECcvDXr = document.createElement('p');
-HECcvDXr.innerHTML += "content of AnotherNestedComponent";
-IYMzvhUM.appendChild(HECcvDXr);
-IYMzvhUM.innerHTML += " test ";
-tcrgQvhF.appendChild(IYMzvhUM);
-rZuCyZTK.appendChild(tcrgQvhF);
+const anothernestedcomponent = AnotherNestedComponent({children: [() => {
+const ETraXmRb = document.createElement('p');
+ETraXmRb.innerHTML += "content of AnotherNestedComponent";
+return ETraXmRb}, () => {return document.createTextNode(" test ")}, () => {
+const anothernestedcomponent = AnotherNestedComponent({children: [() => {
+const tcrgQvhF = document.createElement('p');
+tcrgQvhF.innerHTML += "content of AnotherNestedComponent";
+return tcrgQvhF}, () => {return document.createTextNode(" test ")}, ]});
+return anothernestedcomponent}, ]});
+rZuCyZTK.appendChild(anothernestedcomponent);
 
 return rZuCyZTK;
 }

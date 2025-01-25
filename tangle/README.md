@@ -1,5 +1,7 @@
 # TangleKit
 
+[![repo](https://custom-icon-badges.demolab.com/badge/Repo-blue.svg?logo=repo)](https://github.com/julien-callens/tanglekit)
+
 **An easy-to-use JS framework based on `.tngl` files**
 
 TangleKit introduces a **Svelte-like** single-file component format, allowing you to create modular and maintainable UI
