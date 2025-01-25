@@ -1,6 +1,6 @@
 {
   "name": "tanglekit",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "description": "A compiler for tngl files using ANTLR4",
   "main": "src/js/main.js",
   "type": "module",
