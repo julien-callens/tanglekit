@@ -1,5 +1,4 @@
 <import>
-    "./styles.css";
     NestedComponent from './NestedComponent.tngl';
     AnotherNestedComponent from './AnotherNestedComponent.tngl';
 </import>

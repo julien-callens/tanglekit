@@ -55,8 +55,10 @@ export default function tanglePlugin() {
 
         storeAST(filePath, ast);
 
-        const jsCode = generateJS(ast, filePath);
+        const {jsCode, dependencies} = generateJS(ast, filePath);
         processedFiles.set(filePath, {jsCode, hash});
+
+        dependencyGraph.set(filePath, dependencies);
 
         return jsCode;
     }
@@ -64,43 +66,31 @@ export default function tanglePlugin() {
     return {
         name: 'vite-plugin-tangle',
         enforce: 'pre',
+
         async transform(code, id) {
-            if (id.endsWith('.tngl')) {
-                try {
+            if (!id.endsWith('.tngl')) {
+                return null;
+            }
+
+            try {
                 const jsCode = await processTangleFile(id);
-                for (const dep of dependencyGraph.get(id) || []) {
+
+                const deps = dependencyGraph.get(id) || [];
+                for (const dep of deps) {
                     this.addWatchFile(dep);
                 }
+
+                const importStmts = deps
+                    .filter((dep) => dep.endsWith('.css'))
+                    .map((dep) => `import "${dep}";`)
+                    .join('\n');
+
                 return {
-                    code: jsCode,
+                    code: `${importStmts}\n${jsCode}`,
                     map: null,
                 };
-                } catch (err) {
-                    this.error(`Error processing ${id}: ${err.message}`);
-                }
-            }
-            return null;
-        },
-
-        handleHotUpdate(ctx) {
-            const {file, server} = ctx;
-
-            if (file.endsWith('.tngl')) {
-                processTangleFile(file)
-                    .then((newCode) => {
-                        server.ws.send({
-                            type: 'update',
-                            updates: [
-                                {
-                                    type: 'js-update',
-                                    path: file,
-                                    acceptedPath: file,
-                                    timestamp: Date.now(),
-                                },
-                            ],
-                        });
-                    })
-                    .catch((err) => console.error(`Error processing ${file}:`, err));
+            } catch (err) {
+                this.error(`Error processing ${id}: ${err.message}`);
             }
         },
     };

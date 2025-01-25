@@ -35,7 +35,7 @@ export function formatImports(imports) {
 
     let styleOutput = formatStyleImports(styleImports);
 
-    return {imports: output, styles: styleOutput};
+    return {imports: output, styles: styleImports, formattedStyles: styleOutput};
 }
 
 export function formatStyleImports(styleImports) {

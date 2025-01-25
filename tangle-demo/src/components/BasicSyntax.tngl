@@ -1,5 +1,5 @@
 <import>
-    "testStyles.css";
+    "../testStyles.css";
     NestedComponent from './NestedComponent.tngl';
     AnotherNestedComponent from './AnotherNestedComponent.tngl';
 </import>
@@ -23,7 +23,7 @@
 </code>
 
 <div>
-  <h2>{{ optionalMessage }}</h2>
+  <h2 class="randomClass">{{ optionalMessage }}</h2>
   <p>Count = {{ requiredCount }}</p>
   <p>Clicks = {{ clicks }}</p>
 

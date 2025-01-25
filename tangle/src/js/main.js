@@ -75,7 +75,7 @@ export function generateJS(ast, filePath) {
 
     output += `export default function ${componentName}(${propsOutput}) {\n`;
 
-    output += formattedImports.styles;
+    output += formattedImports.formattedStyles;
 
     if (formattedProps && formattedProps.seededProps) {
         output += formattedProps.seededProps.map((prop) => `${prop.name} = ${prop.value};\n`).join("");
@@ -102,7 +102,7 @@ export function generateJS(ast, filePath) {
 
     output += "}\n";
 
-    return output;
+    return {jsCode: output, dependencies: formattedImports.styles};
 }
 
 export default tanglePlugin;
