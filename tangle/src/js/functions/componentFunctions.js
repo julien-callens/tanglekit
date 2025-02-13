@@ -41,7 +41,7 @@ export function formatImports(imports) {
 export function formatStyleImports(styleImports) {
     let output = "";
     for (const styleImport of styleImports) {
-        let name  = generateName();
+        let name = generateName();
         output += `const ${name} = document.createElement('link');\n`;
         output += `${name}.rel = 'stylesheet';\n`;
         output += `${name}.href = '${styleImport}';\n`;
@@ -57,7 +57,7 @@ export function validatePropsForElement(element, component) {
 
     const providedNames = providedProps.map((attr) => attr.name);
 
-    expectedProps?.forEach((expectedProp) => {
+    expectedProps.forEach((expectedProp) => {
         if (expectedProp.required && !providedNames.includes(expectedProp.name) && expectedProp.name !== "children") {
             throw new ValidationError(
                 `Missing required prop '${expectedProp.name}' for component '${component.id}'`,
@@ -77,31 +77,29 @@ export function validatePropsForElement(element, component) {
 }
 
 export function formatProps(props, type) {
-    if (props !== null && props !== undefined && props.length > 0) {
-        let propsContent = "";
-        let seededProps = [];
-        props.forEach((prop, index) => {
-            if (type === "in") {
-                const value = transformValue(prop.attributeType, prop.content);
-                propsContent += `${prop.name}: ${value}`;
-            } else {
-                propsContent += `${prop.name}`;
-                if (prop.value !== null) {
-                    seededProps.push({name: prop.name, value: transformValue(prop.assignedType, prop.value)});
-                }
-            }
-            if (index < props.length - 1) {
-                propsContent += ", ";
-            }
-        });
+    if (!props?.length) return "";
 
-        if (type === "in") {
-            return propsContent;
-        }
-
-        return {props: propsContent, seededProps: seededProps};
+    if (type === "in") {
+        return props.map((prop) => `${prop.name}: ${transformValue(prop.attributeType, prop.content)}`).filter(Boolean).join(", ");
     }
-    return "";
+
+    const propsContent = props
+        .map(prop => prop.name)
+        .filter(Boolean)
+        .join(", ");
+
+    const seededProps = props
+        .filter(prop => prop.value !== null && prop.value !== undefined)
+        .map(prop => ({
+            name: prop.name,
+            value: transformValue(prop.assignedType, prop.value)
+        }));
+
+    const requiredProps = props
+        .filter(prop => prop.value === null || prop.value === undefined)
+        .map(prop => prop.name);
+
+    return {props: propsContent, seededProps, requiredProps};
 }
 
 export function formatCode(code) {
