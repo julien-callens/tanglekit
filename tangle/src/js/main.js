@@ -78,7 +78,7 @@ export function generateJS(ast, filePath) {
     output += formattedImports.formattedStyles;
 
     if (formattedProps && formattedProps.seededProps) {
-        output += formattedProps.seededProps.map((prop) => `${prop.name} = ${prop.value};\n`).join("");
+        output += formattedProps.seededProps.map((prop) => `${prop.name} ??= ${prop.value};\n`).join("");
     }
 
     output += formatCode(code);
