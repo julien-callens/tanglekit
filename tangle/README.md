@@ -17,10 +17,10 @@ include:
    logic.
 
 For a EBNF grammar of the `.tngl` files, check out the
-[Tangle Parser](./src/g4/TangleParser.g4) and
-[Tangle Lexer](./src/g4/TangleLexer.g4) files.
+[Tangle Parser](https://github.com/julien-callens/tanglekit/blob/main/tangle/src/g4/TangleParser.g4) and
+[Tangle Lexer](https://github.com/julien-callens/tanglekit/blob/main/tangle/src/g4/TangleLexer.g4) files.
 
-Or check out the [Tangle EBNF](./TangleEBNF.ebnf) file for a more readable
+Or check out the [Tangle EBNF](https://github.com/julien-callens/tanglekit/blob/main/tangle/TangleEBNF.ebnf) file for a more readable
 version of the grammar.
 
 For syntax highlighting in VSCode, you can use the

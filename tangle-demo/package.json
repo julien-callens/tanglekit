@@ -12,6 +12,6 @@
     "vite": "^6.0.1"
   },
   "dependencies": {
-    "tanglekit": "^0.6.3"
+    "tanglekit": "^0.6.4"
   }
 }
