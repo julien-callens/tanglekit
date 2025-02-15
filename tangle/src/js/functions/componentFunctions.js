@@ -28,9 +28,9 @@ export function formatImports(imports) {
 
     for (const imp of imports) {
         if (imp.type === "componentImport") {
-            output += `import ${imp.id} from '${imp.path}';\n`;
+            output += `import ${imp.id} from '${imp.path}';`;
         } else if (imp.type === "styleImport") {
-            output += `import '${imp.path}';\n`;
+            output += `import '${imp.path}';`;
             styleImports.push(imp.path);
         }
     }
@@ -44,10 +44,10 @@ export function formatStyleImports(styleImports) {
     let output = "";
     for (const styleImport of styleImports) {
         let name = generateName();
-        output += `const ${name} = document.createElement('link');\n`;
-        output += `${name}.rel = 'stylesheet';\n`;
-        output += `${name}.href = '${styleImport}';\n`;
-        output += `document.head.appendChild(${name});\n`;
+        output += `const ${name} = document.createElement('link');`;
+        output += `${name}.rel = 'stylesheet';`;
+        output += `${name}.href = '${styleImport}';`;
+        output += `document.head.appendChild(${name});`;
     }
 
     return output;
@@ -110,7 +110,7 @@ export function formatCode(code) {
         if (content === null || content === undefined) return;
         switch (content.type) {
             case "variableDeclaration":
-                output += `${content.varDef} ${content.name} = ${transformValue(content.assignedType, content.value)};\n`;
+                output += `${content.varDef} ${content.name} = ${transformValue(content.assignedType, content.value)};`;
                 break;
 
             case "ifStatement":
@@ -118,7 +118,7 @@ export function formatCode(code) {
                 break;
 
             case "variableModification":
-                output += `${content.name} ${content.operator} ${transformValue(content.assignedType, content.value)};\n`;
+                output += `${content.name} ${content.operator} ${transformValue(content.assignedType, content.value)};`;
                 break;
 
             case "functionCall":
@@ -126,19 +126,19 @@ export function formatCode(code) {
                 break;
 
             case "comment":
-                output += `// ${content.value}\n`;
+                output += `// ${content.value}`;
                 break;
 
             case "functionDeclaration":
-                output += `function ${content.name}(${content.args.map(arg => arg.value).join(", ")}) {\n`;
+                output += `function ${content.name}(${content.args.map(arg => arg.value).join(", ")}) {`;
                 if (content.body && Array.isArray(content.body)) {
                     output += formatCode(content.body);
                 }
-                output += "}\n";
+                output += "}";
                 break;
 
             default:
-                output += `// Unhandled node: ${content.type}\n`;
+                output += `// Unhandled node: ${content.type}`;
                 break;
         }
     });
@@ -152,13 +152,13 @@ function generateIfStatement(content) {
 
     const bodyCode = formatCode(body);
 
-    return `if (${ifCondition}) {\n${bodyCode}}\n`;
+    return `if (${ifCondition}) {${bodyCode}}`;
 }
 
 export function generateFunctionCall(callNode) {
     const fnPath = callNode.functionPath.join(".");
     const args = callNode.arguments.map(arg => transformValue(arg.type, arg.value)).join(", ");
-    return `${fnPath}(${args});\n`;
+    return `${fnPath}(${args});`;
 }
 
 function generateCondition(condition) {

@@ -3,20 +3,20 @@ import {generateName} from "./helperFunctions.js";
 
 function formatOnClick(attribute, name) {
     let content = attribute.content;
-    return `${name}.addEventListener('click', () => {${transformValue(content.type, content)}});\n`;
+    return `${name}.addEventListener('click', () => {${transformValue(content.type, content)}});`;
 }
 
 export const elementTransformer = {
     element: (element, startName, ctx) => {
         const name = startName || generateName();
-        let output = `\nconst ${name} = document.createElement('${element.tagName}');\n`;
+        let output = `const ${name} = document.createElement('${element.tagName}');`;
 
         for (const attribute of element.attributes) {
             if (attribute.name === "onClick") {
                 output += formatOnClick(attribute, name);
             } else {
                 const transformedValue = transformValue(attribute.attributeType, attribute.content, true);
-                output += `${name}.setAttribute('${attribute.name}', ${transformedValue});\n`;
+                output += `${name}.setAttribute('${attribute.name}', ${transformedValue});`;
             }
         }
 
@@ -28,25 +28,25 @@ export const elementTransformer = {
                     if (isComponent) {
                         const componentImport = ctx.imports.find((imp) => imp.id === child.tagName);
                         output += elementTransformer.component(child, componentImport, ctx);
-                        output += `${name}.appendChild(${child.tagName.toLowerCase()});\n`;
+                        output += `${name}.appendChild(${child.tagName.toLowerCase()});`;
                     } else {
                         const elementName = generateName();
                         output += elementTransformer.element(child, elementName, ctx);
-                        output += `${name}.appendChild(${elementName});\n`;
+                        output += `${name}.appendChild(${elementName});`;
                     }
                     break;
 
                 case "text":
-                    output += `${name}.innerHTML += ${transformValue(child.type, child.value, true)};\n`;
+                    output += `${name}.innerHTML += ${transformValue(child.type, child.value, true)};`;
                     break;
 
                 case "embeddedStatement":
                     if (child.expression.value === "children") {
-                        output += `children.forEach((ch) => {\n`;
-                        output += `${name}.appendChild(ch());\n`;
-                        output += "});\n";
+                        output += `children.forEach((ch) => {`;
+                        output += `${name}.appendChild(ch());`;
+                        output += "});";
                     } else {
-                        output += `${name}.innerHTML += ${transformValue(child.expression.type, child.expression.value)};\n`;
+                        output += `${name}.innerHTML += ${transformValue(child.expression.type, child.expression.value)};`;
                     }
                     break;
 
@@ -85,24 +85,24 @@ function generateEmbeddedIf(node, parentName, ctx) {
 
     if (node.ifBranch) {
         const conditionStr = generateCondition(node.ifBranch.condition);
-        output += `if (${conditionStr}) {\n`;
+        output += `if (${conditionStr}) {`;
         output += generateEmbeddedIfContent(node.ifBranch.content, parentName, ctx);
-        output += `}\n`;
+        output += `}`;
     }
 
     if (node.elseIfBranches && node.elseIfBranches.length > 0) {
         node.elseIfBranches.forEach((elif) => {
             const elifConditionStr = generateCondition(elif.condition);
-            output += `else if (${elifConditionStr}) {\n`;
+            output += `else if (${elifConditionStr}) {`;
             output += generateEmbeddedIfContent(elif.content, parentName, ctx);
-            output += `}\n`;
+            output += `}`;
         });
     }
 
     if (node.elseBranch && node.elseBranch.content && node.elseBranch.content.length > 0) {
-        output += `else {\n`;
+        output += `else {`;
         output += generateEmbeddedIfContent(node.elseBranch.content, parentName, ctx);
-        output += `}\n`;
+        output += `}`;
     }
 
     return output;
@@ -118,28 +118,28 @@ function generateEmbeddedIfContent(contentArray, parentName, ctx) {
                 if (isComponent) {
                     const componentImport = ctx.imports.find((imp) => imp.id === contentNode.tagName);
                     output += elementTransformer.component(contentNode, componentImport, ctx);
-                    output += `${parentName}.appendChild(${contentNode.tagName.toLowerCase()});\n`;
+                    output += `${parentName}.appendChild(${contentNode.tagName.toLowerCase()});`;
                 } else {
                     const elementName = generateName();
                     output += elementTransformer.element(contentNode, elementName, ctx);
-                    output += `${parentName}.appendChild(${elementName});\n`;
+                    output += `${parentName}.appendChild(${elementName});`;
                 }
                 break;
 
             case "text":
-                output += `${parentName}.innerHTML += ${transformValue(contentNode.type, contentNode.value, true)};\n`;
+                output += `${parentName}.innerHTML += ${transformValue(contentNode.type, contentNode.value, true)};`;
                 break;
 
             case "embeddedStatement":
                 if (contentNode.expression.value === "children") {
-                    output += `children.forEach((ch) => {\n`;
-                    output += `${parentName}.appendChild(ch());\n`;
-                    output += "});\n";
+                    output += `children.forEach((ch) => {`;
+                    output += `${parentName}.appendChild(ch());`;
+                    output += "});";
                 } else {
                     output += `${parentName}.innerHTML += ${transformValue(
                         contentNode.expression.type,
                         contentNode.expression.value
-                    )};\n`;
+                    )};`;
                 }
                 break;
 
@@ -160,7 +160,7 @@ function generateCondition(booleanExpression) {
 
 
 function formatComponent(element, ctx) {
-    let output = `\nconst ${element.tagName.toLowerCase()} = ${element.tagName}(`;
+    let output = `const ${element.tagName.toLowerCase()} = ${element.tagName}(`;
     const props = formatProps(element.attributes, "in");
 
     const childrenAvailable = element.children && element.children.length > 0;
@@ -171,7 +171,7 @@ function formatComponent(element, ctx) {
         output += `{${combinedProps}}`;
     }
 
-    output += ");\n";
+    output += ");";
     return output;
 }
 

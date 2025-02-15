@@ -11,8 +11,7 @@
   },
   "dependencies": {
     "antlr4": "^4.13.2",
-    "html-tags": "^4.0.0",
-    "vitest": "^2.1.8"
+    "html-tags": "^4.0.0"
   },
   "keywords": [],
   "author": "Julien Callens",
@@ -26,5 +25,9 @@
     "src/js/classes/TangleVisitor.js",
     "src/vite/",
     "README.md"
-  ]
+  ],
+  "devDependencies": {
+    "prettier": "^3.5.1",
+    "vitest": "^2.1.8"
+  }
 }

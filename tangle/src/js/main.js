@@ -7,6 +7,7 @@ import path from "node:path";
 import {formatCode, formatImports, formatProps} from "./functions/componentFunctions.js";
 import {elementTransformer} from "./functions/transformer.js";
 import {generateName} from "./functions/helperFunctions.js";
+import prettier from "prettier";
 
 export function compileTangleToAST(sourceCode) {
     const chars = new antlr4.InputStream(sourceCode);
@@ -73,12 +74,12 @@ export function generateJS(ast, filePath) {
 
     const propsOutput = formattedProps ? `{${formattedProps.props}}` : "";
 
-    output += `export default function ${componentName}(${propsOutput}) {\n`;
+    output += `export default function ${componentName}(${propsOutput}) {`;
 
-    output += formattedImports.formattedStyles;
+    // output += formattedImports.formattedStyles;
 
     if (formattedProps && formattedProps.seededProps) {
-        output += formattedProps.seededProps.map((prop) => `${prop.name} ??= ${prop.value};\n`).join("");
+        output += formattedProps.seededProps.map((prop) => `${prop.name} ??= ${prop.value};`).join("");
     }
 
     output += formatCode(code);
@@ -98,9 +99,13 @@ export function generateJS(ast, filePath) {
         }
     }
 
-    output += `\nreturn ${firstElementComponent?.id || name};\n`
+    output += `return ${firstElementComponent?.id || name};`
 
-    output += "}\n";
+    output += "}";
+
+    output = prettier.format(output, {
+        parser: "babel",
+    });
 
     return output;
 }
