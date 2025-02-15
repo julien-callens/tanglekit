@@ -1,6 +1,6 @@
 {
   "name": "tanglekit",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "A compiler for tngl files using ANTLR4",
   "main": "src/js/main.js",
   "type": "module",
@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "antlr4": "^4.13.2",
-    "html-tags": "^4.0.0"
+    "html-tags": "^4.0.0",
+    "prettier": "^3.5.1"
   },
   "keywords": [],
   "author": "Julien Callens",
@@ -27,7 +28,6 @@
     "README.md"
   ],
   "devDependencies": {
-    "prettier": "^3.5.1",
     "vitest": "^2.1.8"
   }
 }
