@@ -102,7 +102,7 @@ export function generateJS(ast, filePath) {
 
     output += "}\n";
 
-    return {jsCode: output, dependencies: formattedImports.styles};
+    return output;
 }
 
 export default tanglePlugin;

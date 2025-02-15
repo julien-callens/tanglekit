@@ -25,10 +25,12 @@ export function validateImports(imports, filePath) {
 export function formatImports(imports) {
     let output = "";
     let styleImports = [];
+
     for (const imp of imports) {
         if (imp.type === "componentImport") {
             output += `import ${imp.id} from '${imp.path}';\n`;
         } else if (imp.type === "styleImport") {
+            output += `import '${imp.path}';\n`;
             styleImports.push(imp.path);
         }
     }

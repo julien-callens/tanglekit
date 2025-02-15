@@ -55,10 +55,8 @@ export default function tanglePlugin() {
 
         storeAST(filePath, ast);
 
-        const {jsCode, dependencies} = generateJS(ast, filePath);
+        const jsCode = generateJS(ast, filePath);
         processedFiles.set(filePath, {jsCode, hash});
-
-        dependencyGraph.set(filePath, dependencies);
 
         return jsCode;
     }
@@ -80,13 +78,8 @@ export default function tanglePlugin() {
                     this.addWatchFile(dep);
                 }
 
-                const importStmts = deps
-                    .filter((dep) => dep.endsWith('.css'))
-                    .map((dep) => `import "${dep}";`)
-                    .join('\n');
-
                 return {
-                    code: `${importStmts}\n${jsCode}`,
+                    code: jsCode,
                     map: null,
                 };
             } catch (err) {
