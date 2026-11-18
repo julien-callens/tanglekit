@@ -1,11 +1,11 @@
 {
   "name": "tanglekit",
-version c  "version": "0.6.5",
+  "version": "0.6.6",
   "description": "A compiler for tngl files using ANTLR4",
   "main": "src/js/main.js",
   "type": "module",
   "scripts": {
-    "build": "java -jar antlr/antlr-4.13.2-complete.jar -Dlanguage=JavaScript -o src/js/generated src/g4/TangleLexer.g4 -visitor src/g4/TangleParser.g4",
+    "build": "cd src/g4 && java -jar ../../antlr/antlr-4.13.2-complete.jar -Dlanguage=JavaScript -visitor -Xexact-output-dir -o ../js/generated TangleLexer.g4 TangleParser.g4",
     "test": "vitest --run",
     "pack": "npm pack"
   },
@@ -20,14 +20,14 @@ version c  "version": "0.6.5",
   "files": [
     "src/js/classes/",
     "src/js/functions/",
-    "src/js/generated/",
+    "src/js/generated/*.js",
     "src/js/main.js",
-    "src/js/JSGenerator.js",
-    "src/js/classes/TangleVisitor.js",
     "src/vite/",
     "README.md"
   ],
   "devDependencies": {
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "jsdom": "^26.1.0",
+    "vite": "^5.4.11"
   }
 }

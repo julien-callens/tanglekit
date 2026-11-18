@@ -8,7 +8,7 @@ document
     : importDeclaration?
       propsDeclaration?
       codeDeclaration?
-      elementsDeclaration
+      elementsDeclaration EOF
     ;
 
 importDeclaration
@@ -21,11 +21,11 @@ importStatement
     ;
 
 componentImport
-    : IMPORT_ID FROM IMPORT_PATH_OPEN STRING_CONTENT STRING_CLOSE IMPORT_STATEMENT_END
+    : IMPORT_ID FROM IMPORT_PATH IMPORT_STATEMENT_END
     ;
 
 styleImport
-    : IMPORT_PATH_OPEN STRING_CONTENT STRING_CLOSE IMPORT_STATEMENT_END
+    : IMPORT_PATH IMPORT_STATEMENT_END
     ;
 
 propsDeclaration
@@ -37,7 +37,7 @@ propsContent
     ;
 
 codeDeclaration
-    : CODE_OPEN (codeContent comment?)* CODE_CLOSE
+    : CODE_OPEN codeContent* CODE_CLOSE
     ;
 
 codeContent
@@ -46,6 +46,8 @@ codeContent
     | ifStatement
     | functionDeclaration
     | (functionCall STATEMENT_END)
+    | RETURN expression? STATEMENT_END
+    | updateExpression STATEMENT_END
     | variableModification
     ;
 
@@ -58,44 +60,33 @@ functionArgs
     ;
 
 comment
-    : COMMENT_START COMMENT_CONTENT COMMENT_CLOSE
+    : COMMENT_START COMMENT_CONTENT? COMMENT_CLOSE
     ;
 
 variableDeclaration
-    : VAR_DEF NAME (ASSIGN statement)? STATEMENT_END
+    : VAR_DEF NAME (ASSIGN expression)? STATEMENT_END
     ;
 
 variableModification
-    : NAME (ASSIGN | ASSIGN_OPERATOR) statement STATEMENT_END
+    : NAME (ASSIGN | ASSIGN_OPERATOR) expression STATEMENT_END
     ;
 
 ifStatement
-    : IF EXPRESSION_OPEN booleanExpression EXPRESSION_CLOSE CODE_BLOCK_OPEN (codeContent comment?)* CODE_BLOCK_CLOSE
+    : IF EXPRESSION_OPEN expression EXPRESSION_CLOSE CODE_BLOCK_OPEN codeContent* CODE_BLOCK_CLOSE
     ;
 
 embeddedIfStatement
-    : EXPRESSION_OPEN booleanExpression EXPRESSION_CLOSE
+    : EXPRESSION_OPEN expression EXPRESSION_CLOSE
     ;
 
-booleanExpression
-    : expression operator expression
-    ;
-
-statement
-    : (variableTypes | NAME)?
-    | checkStatement
-    | CREMENT_OPERATOR NAME
+updateExpression
+    : CREMENT_OPERATOR NAME
     | NAME CREMENT_OPERATOR
-    | functionCall
-    ;
-
-checkStatement
-    : (variableTypes | NAME) operator (variableTypes | NAME)
     ;
 
 elementsDeclaration
     : TAG_OPEN NAME elementAttribute*
-    ( TAG_CLOSE content TAG_OPEN TAG_SLASH NAME TAG_CLOSE
+    ( TAG_CLOSE content CLOSING_OPEN NAME TAG_CLOSE
     | TAG_SLASH TAG_CLOSE)
     ;
 
@@ -115,15 +106,21 @@ embeddedStatement
     ;
 
 expression
+    : operand (operator operand)*
+    ;
+
+operand
     : functionCall
-    | embeddedIfStatement
+    | NOT_OPERATOR operand
+    | LPAREN expression ARGS_CLOSE
+    | updateExpression
     | variableTypes
     | NAME
     ;
 
 embeddedIf
     : EMBEDDED_OPEN IF embeddedIfStatement EMBEDDED_CLOSE
-    content?
+    content
     embeddedElseIf*
     embeddedElse?
     EMBEDDED_OPEN EMBEDDED_END_IF EMBEDDED_CLOSE
@@ -131,12 +128,12 @@ embeddedIf
 
 embeddedElseIf
     : EMBEDDED_OPEN ELSE_IF embeddedIfStatement EMBEDDED_CLOSE
-    content?
+    content
     ;
 
 embeddedElse
     : EMBEDDED_OPEN ELSE embeddedIfStatement? EMBEDDED_CLOSE
-    content?
+    content
     ;
 
 functionCall
@@ -154,7 +151,7 @@ variableTypes
     ;
 
 stringType
-    : STRING_OPEN STRING_CONTENT STRING_CLOSE
+    : STRING_VALUE
     ;
 
 textContent

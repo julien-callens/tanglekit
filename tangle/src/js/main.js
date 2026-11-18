@@ -4,9 +4,8 @@ import TangleLexer from "./generated/TangleLexer.js";
 import {TangleVisitor} from "./classes/TangleVisitor.js";
 import tanglePlugin from "../vite/plugin.js";
 import path from "node:path";
-import {formatCode, formatImports, formatProps} from "./functions/componentFunctions.js";
-import {elementTransformer} from "./functions/transformer.js";
-import {generateName} from "./functions/helperFunctions.js";
+import {assignedValue, formatCode, formatImports} from "./functions/componentFunctions.js";
+import {renderNode} from "./functions/transformer.js";
 import prettier from "prettier";
 
 export function compileTangleToAST(sourceCode) {
@@ -21,6 +20,9 @@ export function compileTangleToAST(sourceCode) {
         }
 
         syntaxError(recognizer, offendingSymbol, line, column, msg, e) {
+            if (offendingSymbol?.type === TangleLexer.TAG_OPEN && recognizer.getExpectedTokens().contains(antlr4.Token.EOF)) {
+                msg = `Only one root element is allowed (${msg})`;
+            }
             const errorMsg = `Syntax Error at line ${line}:${column} - ${msg}`;
             this.errors.push(errorMsg);
         }
@@ -47,7 +49,6 @@ export function compileTangleToAST(sourceCode) {
     const tree = parser.document();
 
     if (errorListener.errors.length > 0) {
-        errorListener.errors.forEach(error => console.error(error));
         throw new Error(`Compilation failed due to syntax errors. ${errorListener.errors[0]}`);
     }
 
@@ -58,56 +59,39 @@ export function compileTangleToAST(sourceCode) {
 export function generateJS(ast, filePath) {
     const {imports, props, code, elements} = ast;
     const componentName = path.basename(filePath, '.tngl');
+    let nextId = 0;
+    // '$' cannot occur in a Tangle identifier.
+    const mutableLocals = code.filter(node => node.type === "variableDeclaration" && node.varDef === "let");
     const ctx = {
-        variables: [],
-        functions: [],
-        imports: imports
+        imports,
+        mutableNames: new Set(mutableLocals.map(node => node.name)),
+        nextName: () => `$node${nextId++}`,
     };
+    const root = ctx.nextName();
+    const render = renderNode(elements, root, ctx);
 
-    let output = "";
-
-    const formattedImports = formatImports(imports);
-
-    output += formattedImports.imports;
-
-    const formattedProps = formatProps(props)
-
-    const propsOutput = formattedProps ? `{${formattedProps.props}}` : "";
-
-    output += `export default function ${componentName}(${propsOutput}) {`;
-
-    // output += formattedImports.formattedStyles;
-
-    if (formattedProps && formattedProps.seededProps) {
-        output += formattedProps.seededProps.map((prop) => `${prop.name} ??= ${prop.value};`).join("");
-    }
-
-    output += formatCode(code);
-
-    let handler = elementTransformer[elements.type];
-
-    const firstElementComponent = imports.find((imp) => imp.id === elements.tagName) || null;
-    let name = "";
-
-    if (firstElementComponent) {
-        handler = elementTransformer.component;
-        output += handler(elements, firstElementComponent, ctx);
-    } else {
-        name = generateName();
-        if (handler) {
-            output += handler(elements, name, ctx);
+    const params = props.length ? `{${props.map(prop => prop.name).join(", ")}} = {}` : "";
+    let output = formatImports(imports) + `export default function ${componentName}(${params}) {`;
+    for (const prop of props) {
+        if (prop.assignedType !== null) {
+            output += `${prop.name} ??= ${assignedValue(prop)};`;
+        } else if (prop.name !== "children") {
+            const message = JSON.stringify(`Missing required prop '${prop.name}' for component '${componentName}'`);
+            output += `if (${prop.name} === undefined) throw new Error(${message});`;
         }
     }
-
-    output += `return ${firstElementComponent?.id || name};`
-
-    output += "}";
-
-    output = prettier.format(output, {
-        parser: "babel",
-    });
-
-    return output;
+    if (ctx.hasBoundText || ctx.hasClickUpdates) output += "const $textUpdates = [];";
+    if (ctx.hasClickUpdates) {
+        output += `function $afterClick(listener) {
+            if (typeof listener !== "function") return listener;
+            return function(event) {
+                listener.call(this, event);
+                for (const update of $textUpdates) update();
+            };
+        }`;
+    }
+    output += formatCode(code) + render + `return ${root};}`;
+    return prettier.format(output, {parser: "babel"});
 }
 
 export default tanglePlugin;

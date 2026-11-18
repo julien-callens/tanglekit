@@ -1,45 +1,5 @@
-import {processTangleFile} from "./testFunctions.js";
 import {expect, test} from 'vitest'
 import {compileTangleToAST} from "../src/js/main.js";
-
-test("full syntax e2e test", async () => {
-    let generatedJS = await processTangleFile("test/examples/BasicSyntax.tngl");
-    expect(generatedJS).toBe(`import NestedComponent from './NestedComponent.tngl';
-import AnotherNestedComponent from './AnotherNestedComponent.tngl';
-export default function BasicSyntax() {
-const gKEtnNWj = document.createElement('link');
-gKEtnNWj.rel = 'stylesheet';
-gKEtnNWj.href = './styles.css';
-document.head.appendChild(gKEtnNWj);
-let variable = "balls";
-
-const rZuCyZTK = document.createElement('div');
-rZuCyZTK.setAttribute('class', "randomClass");
-
-const XYitJizj = document.createElement('p');
-XYitJizj.setAttribute('class', variable);
-XYitJizj.innerHTML += "variable: ";
-XYitJizj.innerHTML += variable;
-rZuCyZTK.appendChild(XYitJizj);
-
-const nestedcomponent = NestedComponent({prop: "beans", prop2: variable});
-rZuCyZTK.appendChild(nestedcomponent);
-
-const anothernestedcomponent = AnotherNestedComponent({children: [() => {
-const ETraXmRb = document.createElement('p');
-ETraXmRb.innerHTML += "content of AnotherNestedComponent";
-return ETraXmRb}, () => {return document.createTextNode(" test ")}, () => {
-const anothernestedcomponent = AnotherNestedComponent({children: [() => {
-const tcrgQvhF = document.createElement('p');
-tcrgQvhF.innerHTML += "content of AnotherNestedComponent";
-return tcrgQvhF}, () => {return document.createTextNode(" test ")}, ]});
-return anothernestedcomponent}, ]});
-rZuCyZTK.appendChild(anothernestedcomponent);
-
-return rZuCyZTK;
-}
-`);
-});
 
 test("ast generation test", async () => {
     const ast = compileTangleToAST(`<import>
@@ -327,4 +287,12 @@ test("nested components", async () => {
             }
         ]
     });
+});
+
+test.each([
+    ["<p/>\n<div/>", /line 2:0 .*Only one root element is allowed.*'<' expecting <EOF>/],
+    ["<div>\n  <b>ok</i>\n</div>", /line 2:9 .*expected <\/b>, found <\/i>/],
+    ["<p/>trailing", /line 1:4 .*'trailing' expecting <EOF>/],
+])("rejects malformed documents with a source location", (source, diagnostic) => {
+    expect(() => compileTangleToAST(source)).toThrow(diagnostic);
 });

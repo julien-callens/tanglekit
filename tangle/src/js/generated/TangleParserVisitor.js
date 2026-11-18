@@ -1,4 +1,4 @@
-// Generated from src/g4/TangleParser.g4 by ANTLR 4.13.2
+// Generated from TangleParser.g4 by ANTLR 4.13.2
 // jshint ignore: start
 import antlr4 from 'antlr4';
 
@@ -102,20 +102,8 @@ export default class TangleParserVisitor extends antlr4.tree.ParseTreeVisitor {
 	}
 
 
-	// Visit a parse tree produced by TangleParser#booleanExpression.
-	visitBooleanExpression(ctx) {
-	  return this.visitChildren(ctx);
-	}
-
-
-	// Visit a parse tree produced by TangleParser#statement.
-	visitStatement(ctx) {
-	  return this.visitChildren(ctx);
-	}
-
-
-	// Visit a parse tree produced by TangleParser#checkStatement.
-	visitCheckStatement(ctx) {
+	// Visit a parse tree produced by TangleParser#updateExpression.
+	visitUpdateExpression(ctx) {
 	  return this.visitChildren(ctx);
 	}
 
@@ -146,6 +134,12 @@ export default class TangleParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
 	// Visit a parse tree produced by TangleParser#expression.
 	visitExpression(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
+	// Visit a parse tree produced by TangleParser#operand.
+	visitOperand(ctx) {
 	  return this.visitChildren(ctx);
 	}
 

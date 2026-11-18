@@ -1,4 +1,4 @@
-// Generated from src/g4/TangleParser.g4 by ANTLR 4.13.2
+// Generated from TangleParser.g4 by ANTLR 4.13.2
 // jshint ignore: start
 import antlr4 from 'antlr4';
 
@@ -149,30 +149,12 @@ export default class TangleParserListener extends antlr4.tree.ParseTreeListener 
 	}
 
 
-	// Enter a parse tree produced by TangleParser#booleanExpression.
-	enterBooleanExpression(ctx) {
+	// Enter a parse tree produced by TangleParser#updateExpression.
+	enterUpdateExpression(ctx) {
 	}
 
-	// Exit a parse tree produced by TangleParser#booleanExpression.
-	exitBooleanExpression(ctx) {
-	}
-
-
-	// Enter a parse tree produced by TangleParser#statement.
-	enterStatement(ctx) {
-	}
-
-	// Exit a parse tree produced by TangleParser#statement.
-	exitStatement(ctx) {
-	}
-
-
-	// Enter a parse tree produced by TangleParser#checkStatement.
-	enterCheckStatement(ctx) {
-	}
-
-	// Exit a parse tree produced by TangleParser#checkStatement.
-	exitCheckStatement(ctx) {
+	// Exit a parse tree produced by TangleParser#updateExpression.
+	exitUpdateExpression(ctx) {
 	}
 
 
@@ -218,6 +200,15 @@ export default class TangleParserListener extends antlr4.tree.ParseTreeListener 
 
 	// Exit a parse tree produced by TangleParser#expression.
 	exitExpression(ctx) {
+	}
+
+
+	// Enter a parse tree produced by TangleParser#operand.
+	enterOperand(ctx) {
+	}
+
+	// Exit a parse tree produced by TangleParser#operand.
+	exitOperand(ctx) {
 	}
 
 

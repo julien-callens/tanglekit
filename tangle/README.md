@@ -61,7 +61,7 @@ parse `.tngl` files.
 
    ```js
    import { defineConfig } from "vite";
-   import { tanglePlugin } from "tanglekit";
+   import tanglePlugin from "tanglekit";
 
    export default defineConfig({
      plugins: [tanglePlugin()],
@@ -70,7 +70,8 @@ parse `.tngl` files.
 
 ### Local usage
 
-If you're developing TangleKit locally:
+The repository demo installs the local compiler with `npm ci` in `tangle-demo`.
+For other Vite projects:
 
 1. Run `npm link` inside this TangleKit project.
 2. In your desired Vite project, run `npm link tanglekit`.
@@ -145,9 +146,8 @@ These become **exported** properties on the component, so that parent components
 can set them like `<MyComponent requiredProp="..." />`.
 
 > **Note**\
-> **`children`** is a special prop that can be exported. This then supposed to
-> be used in a non-self-closing component.\
-> `<MyComponent requiredProp="..." >I am the children passed</MyComponent>`
+> Declare `let children;` and use `{{children}}` to insert the caller’s children.
+> Each child renderer returns a DOM node. Omitting children leaves the slot empty.
 
 ---
 
@@ -241,8 +241,17 @@ Within this HTML-like syntax, you can use:
   ```jsx
   <div class={{ dynamicClass }}>
     ...
-  </div>;
+  </div>
   ```
+
+A click handler can update a component’s local state with an ordinary assignment.
+After the handler returns, direct text bindings such as `{{ clicks }}` display
+the current value of the component’s top-level `let` variable. This also works
+when the binding appears more than once. Expressions such as `{{ getMessage() }}`,
+attributes, child props, and conditional branches are evaluated when rendered.
+
+Use `onClick={{ increment() }}` to call a function without arguments. The
+reference form `onClick={{ increment }}` passes the click event to the function.
 
 #### Nesting Components
 
@@ -365,7 +374,7 @@ In this example:
 
 ---
 
-## Exmaple Output
+## Example Output
 
 Basic input `.tngl` file:
 
@@ -395,53 +404,15 @@ Basic input `.tngl` file:
 </div>
 ```
 
-The above `.tngl` file would be compiled to a **single JavaScript function**:
+The generated module imports the stylesheet and both components. Its default
+export creates and returns a fresh `div` each time it runs. For example, the
+paragraph’s contents are constructed with these DOM operations:
 
 ```js
-import NestedComponent from "/src/components/NestedComponent.tngl";
-import AnotherNestedComponent from "/src/components/AnotherNestedComponent.tngl";
-export default function BasicSyntax() {
-  let variable = "beans";
-
-  const sQPZhoBT = document.createElement("div");
-  sQPZhoBT.setAttribute("class", "randomClass");
-
-  const CviKSbJJ = document.createElement("p");
-  CviKSbJJ.setAttribute("class", variable);
-  CviKSbJJ.innerHTML += "variable: ";
-  CviKSbJJ.innerHTML += variable;
-  sQPZhoBT.appendChild(CviKSbJJ);
-
-  const nestedcomponent = NestedComponent({
-    prop: null,
-    prop2: variable,
-  });
-  sQPZhoBT.appendChild(nestedcomponent);
-
-  const anothernestedcomponent = AnotherNestedComponent({
-    children: [() => {
-      const TIEmfiRt = document.createElement("p");
-      TIEmfiRt.innerHTML += "content of AnotherNestedComponent";
-      return TIEmfiRt;
-    }, () => {
-      return document.createTextNode(" test ");
-    }, () => {
-      const anothernestedcomponent = AnotherNestedComponent({
-        children: [() => {
-          const ocXfgMKm = document.createElement("p");
-          ocXfgMKm.innerHTML += "content of AnotherNestedComponent";
-          return ocXfgMKm;
-        }, () => {
-          return document.createTextNode(" test ");
-        }],
-      });
-      return anothernestedcomponent;
-    }],
-  });
-  sQPZhoBT.appendChild(anothernestedcomponent);
-
-  return sQPZhoBT;
-}
+const paragraph = document.createElement("p");
+paragraph.setAttribute("class", variable);
+paragraph.appendChild(document.createTextNode("variable: "));
+paragraph.appendChild(document.createTextNode(variable));
 ```
 
 ## Credits

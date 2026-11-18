@@ -1,87 +1,73 @@
-import path from 'node:path';
-import {promises as fs} from 'fs';
-import crypto from 'crypto';
-import {storeAST} from '../js/functions/astCache.js';
-import {validateImports} from '../js/functions/componentFunctions.js';
+import path from "node:path";
+import {readFile} from "node:fs/promises";
 import {compileTangleToAST, generateJS} from "../js/main.js";
 
-const processedFiles = new Map();
-
-function hashContent(content) {
-    return crypto.createHash('sha256').update(content).digest('hex');
-}
-
-async function readAndHashFile(filePath) {
-    const sourceCode = (await fs.readFile(filePath, 'utf-8')).normalize();
-    const hash = hashContent(sourceCode);
-    return {sourceCode, hash};
-}
-
 export default function tanglePlugin() {
-    const dependencyGraph = new Map();
-
-    async function processTangleFile(filePath) {
-        filePath = path.normalize(filePath);
-
-        const {sourceCode, hash} = await readAndHashFile(filePath);
-
-        if (processedFiles.has(filePath)) {
-            const cachedEntry = processedFiles.get(filePath);
-            if (cachedEntry.hash === hash) {
-                return cachedEntry.jsCode;
-            }
-        }
-
-        const ast = compileTangleToAST(sourceCode);
-
-        storeAST(filePath, ast);
-
-        if (ast.imports && ast.imports.length > 0) {
-            const tnglImports = ast.imports.filter(imp => path.extname(imp.path) === '.tngl');
-
-            for (const imp of tnglImports) {
-                const resolvedImportPath = path.resolve(path.dirname(filePath), imp.path).normalize();
-
-                if (resolvedImportPath === filePath) {
-                    ast.imports = ast.imports.filter(i => i.path !== imp.path);
-                    continue;
-                }
-
-                await processTangleFile(resolvedImportPath);
-            }
-
-            validateImports(ast.imports, filePath);
-        }
-
-        storeAST(filePath, ast);
-
-        const jsCode = generateJS(ast, filePath);
-        processedFiles.set(filePath, {jsCode, hash});
-
-        return jsCode;
-    }
+    const compiled = new Map();
 
     return {
-        name: 'vite-plugin-tangle',
-        enforce: 'pre',
+        name: "vite-plugin-tangle",
+        enforce: "pre",
+
+        buildStart() {
+            compiled.clear();
+        },
+
+        handleHotUpdate({file, modules}) {
+            if (!file.endsWith(".tngl")) return;
+            // Vite can reuse an importer's transform when only its JS import timestamp changed.
+            const affected = new Set(modules);
+            for (const module of affected) {
+                for (const importer of module.importers) {
+                    if (importer.id?.endsWith(".tngl")) affected.add(importer);
+                }
+            }
+            return [...affected];
+        },
 
         async transform(code, id) {
-            if (!id.endsWith('.tngl')) {
-                return null;
-            }
+            if (!id.endsWith(".tngl")) return null;
+            const visited = new Map();
 
-            try {
-                const jsCode = await processTangleFile(id);
+            const compile = async (file, chain, source) => {
+                if (chain.includes(file)) {
+                    throw new Error(`Circular Tangle import: ${[...chain, file].join(" -> ")}`);
+                }
+                if (visited.has(file)) return visited.get(file);
 
-                const deps = dependencyGraph.get(id) || [];
-                for (const dep of deps) {
-                    this.addWatchFile(dep);
+                source ??= await readFile(file, "utf8");
+                const cached = compiled.get(file);
+                const ast = cached?.source === source ? cached.ast : compileTangleToAST(source);
+                const imports = [];
+                const dependencies = [];
+                for (const imp of ast.imports) {
+                    if (imp.type === "styleImport") {
+                        imports.push(imp);
+                        continue;
+                    }
+                    const child = path.resolve(path.dirname(file), imp.path);
+                    if (child === file) continue; // Historically redundant direct self-imports are ignored.
+                    this.addWatchFile(child);
+                    const entry = await compile(child, [...chain, file]);
+                    dependencies.push(entry);
+                    imports.push({...imp, props: entry.ast.props.map(prop => ({
+                        name: prop.name, required: prop.assignedType === null,
+                    }))});
                 }
 
-                return {
-                    code: jsCode,
-                    map: null,
-                };
+                let entry = cached;
+                if (cached?.ast !== ast || dependencies.some((dep, i) => dep !== cached.dependencies[i])) {
+                    const js = await generateJS({...ast, imports}, file);
+                    entry = {source, ast, dependencies, js};
+                    compiled.set(file, entry);
+                }
+                visited.set(file, entry);
+                return entry;
+            };
+
+            try {
+                const entry = await compile(path.resolve(id), [], code);
+                return {code: entry.js, map: null};
             } catch (err) {
                 this.error(`Error processing ${id}: ${err.message}`);
             }

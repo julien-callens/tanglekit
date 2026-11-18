@@ -1,0 +1,31 @@
+name: Compiler and packed demo
+
+on: [push, pull_request]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+        working-directory: tangle
+      - name: Check reproducible parser output
+        working-directory: tangle
+        run: |
+          mv src/js/generated "$RUNNER_TEMP/expected-parser"
+          for pass in 1 2; do
+            npm run build
+            diff -ru "$RUNNER_TEMP/expected-parser" src/js/generated
+          done
+      - run: npm test
+        working-directory: tangle
+      - run: npm ci
+        working-directory: tangle-demo
+      - run: bash tangle/test/packed-demo.sh

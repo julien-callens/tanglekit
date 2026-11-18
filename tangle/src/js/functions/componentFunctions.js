@@ -1,56 +1,10 @@
 import {ValidationError} from "../classes/ValidationError.js";
-import path from "node:path";
-import {getAST} from "./astCache.js";
-import {generateName} from "./helperFunctions.js";
-
-export function validateImports(imports, filePath) {
-    imports.forEach((imp) => {
-        if (imp.type === "componentImport") {
-            const componentPath = path.resolve(path.dirname(filePath), imp.path);
-            const componentAST = getAST(componentPath);
-
-            if (!componentAST) {
-                throw new Error(`AST not found for ${componentPath}. Make sure the file is compiled first.`);
-            }
-
-            imp.props = componentAST.props?.map((prop) => ({
-                name: prop.name,
-                required: prop.value === null || prop.value === undefined,
-                defaultValue: prop.value,
-            }));
-        }
-    });
-}
 
 export function formatImports(imports) {
-    let output = "";
-    let styleImports = [];
-
-    for (const imp of imports) {
-        if (imp.type === "componentImport") {
-            output += `import ${imp.id} from '${imp.path}';`;
-        } else if (imp.type === "styleImport") {
-            output += `import '${imp.path}';`;
-            styleImports.push(imp.path);
-        }
-    }
-
-    let styleOutput = formatStyleImports(styleImports);
-
-    return {imports: output, styles: styleImports, formattedStyles: styleOutput};
-}
-
-export function formatStyleImports(styleImports) {
-    let output = "";
-    for (const styleImport of styleImports) {
-        let name = generateName();
-        output += `const ${name} = document.createElement('link');`;
-        output += `${name}.rel = 'stylesheet';`;
-        output += `${name}.href = '${styleImport}';`;
-        output += `document.head.appendChild(${name});`;
-    }
-
-    return output;
+    return imports.map(imp => {
+        const binding = imp.type === "componentImport" ? `${imp.id} from ` : "";
+        return `import ${binding}${JSON.stringify(imp.path)};`;
+    }).join("\n");
 }
 
 export function validatePropsForElement(element, component) {
@@ -78,112 +32,55 @@ export function validatePropsForElement(element, component) {
     });
 }
 
-export function formatProps(props, type) {
-    if (!props?.length) return "";
+export function assignedValue(node) {
+    if (node.assignedType === null) return "null";
+    const expression = typeof node.value === "object" ? node.value : {type: node.assignedType, value: node.value};
+    return emitExpression(expression);
+}
 
-    if (type === "in") {
-        return props.map((prop) => `${prop.name}: ${transformValue(prop.attributeType, prop.content)}`).filter(Boolean).join(", ");
+export function emitExpression(node) {
+    switch (node.type) {
+        case "int":
+        case "bool":
+        case "text":
+        case "string":
+            return JSON.stringify(node.value);
+        case "name":
+            return node.value;
+        case "functionCall":
+            return `${node.functionPath.join(".")}(${node.arguments.map(emitExpression).join(", ")})`;
+        case "operation":
+            return node.operands.map((operand, i) =>
+                (i ? ` ${node.operators[i - 1]} ` : "") + emitExpression(operand)
+            ).join("");
+        case "group":
+            return `(${emitExpression(node.operand)})`;
+        case "not":
+            return `!${emitExpression(node.operand)}`;
+        case "incrementDecrement":
+            return node.prefix ? node.operator + node.name : node.name + node.operator;
+        default:
+            throw new Error(`Unknown expression type '${node.type}'`);
     }
-
-    const propsContent = props
-        .map(prop => prop.name)
-        .filter(Boolean)
-        .join(", ");
-
-    const seededProps = props
-        .filter(prop => prop.value !== null && prop.value !== undefined)
-        .map(prop => ({
-            name: prop.name,
-            value: transformValue(prop.assignedType, prop.value)
-        }));
-
-    const requiredProps = props
-        .filter(prop => prop.value === null || prop.value === undefined)
-        .map(prop => prop.name);
-
-    return {props: propsContent, seededProps, requiredProps};
 }
 
 export function formatCode(code) {
-    let output = "";
-    code.forEach((content) => {
-        if (content === null || content === undefined) return;
-        switch (content.type) {
+    return code.map(node => {
+        switch (node.type) {
             case "variableDeclaration":
-                output += `${content.varDef} ${content.name} = ${transformValue(content.assignedType, content.value)};`;
-                break;
-
-            case "ifStatement":
-                output += generateIfStatement(content);
-                break;
-
+                return `${node.varDef} ${node.name} = ${assignedValue(node)};`;
             case "variableModification":
-                output += `${content.name} ${content.operator} ${transformValue(content.assignedType, content.value)};`;
-                break;
-
-            case "functionCall":
-                output += generateFunctionCall(content);
-                break;
-
-            case "comment":
-                output += `// ${content.value}`;
-                break;
-
+                return `${node.name} ${node.operator} ${assignedValue(node)};`;
+            case "ifStatement":
+                return `if (${emitExpression(node.condition)}) {${formatCode(node.body)}}`;
             case "functionDeclaration":
-                output += `function ${content.name}(${content.args.map(arg => arg.value).join(", ")}) {`;
-                if (content.body && Array.isArray(content.body)) {
-                    output += formatCode(content.body);
-                }
-                output += "}";
-                break;
-
+                return `function ${node.name}(${node.args.map(emitExpression).join(", ")}) {${formatCode(node.body)}}`;
+            case "return":
+                return `return ${node.expression ? emitExpression(node.expression) : ""};`;
+            case "comment":
+                return `// ${node.value}\n`;
             default:
-                output += `// Unhandled node: ${content.type}`;
-                break;
+                return emitExpression(node) + ";";
         }
-    });
-
-    return output;
-}
-
-function generateIfStatement(content) {
-    const {condition, body} = content;
-    const ifCondition = generateCondition(condition);
-
-    const bodyCode = formatCode(body);
-
-    return `if (${ifCondition}) {${bodyCode}}`;
-}
-
-export function generateFunctionCall(callNode) {
-    const fnPath = callNode.functionPath.join(".");
-    const args = callNode.arguments.map(arg => transformValue(arg.type, arg.value)).join(", ");
-    return `${fnPath}(${args});`;
-}
-
-function generateCondition(condition) {
-    if (!condition) return "true";
-    const left = transformValue(condition.left.type, condition.left.value);
-    const op = condition.operator;
-    const right = transformValue(condition.right.type, condition.right.value);
-    return `${left} ${op} ${right}`;
-}
-
-export function transformValue(type, value, toHTML = false) {
-    switch (type) {
-        case "string":
-        case "text":
-            return `"${value}"`;
-        case "int":
-        case "name":
-        case "variable":
-        case "bool":
-            return toHTML ? `"${value}"` : `${value}`;
-        case "functionCall":
-            return `${generateFunctionCall(value)}`;
-        case "embeddedStatement":
-            return transformValue(value.type, value.value || value.expression);
-        default:
-            return null;
-    }
+    }).join("\n");
 }

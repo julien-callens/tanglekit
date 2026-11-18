@@ -20,12 +20,12 @@ export class TangleVisitor extends TangleParserVisitor {
             return {
                 type: "componentImport",
                 id: ctx.componentImport().IMPORT_ID().getText(),
-                path: ctx.componentImport().STRING_CONTENT().getText(),
+                path: ctx.componentImport().IMPORT_PATH().getText().slice(1, -1),
             };
         } else if (ctx.styleImport()) {
             return {
                 type: "styleImport",
-                path: ctx.styleImport().STRING_CONTENT().getText(),
+                path: ctx.styleImport().IMPORT_PATH().getText().slice(1, -1),
             };
         }
         return null;
@@ -40,95 +40,39 @@ export class TangleVisitor extends TangleParserVisitor {
     }
 
     visitCodeDeclaration(ctx) {
-
-        const results = [];
-        const children = ctx.children || [];
-        for (const child of children) {
-            if (child instanceof TangleParser.CodeContentContext) {
-                results.push(this.visitCodeContent(child));
-            } else if (child instanceof TangleParser.CommentContext) {
-                results.push(this.visitComment(child));
-            }
-        }
-        return results;
+        return ctx.codeContent().map(content => this.visit(content));
     }
 
     visitCodeContent(ctx) {
-        if (ctx.comment()) {
-            return this.visitComment(ctx.comment());
+        if (ctx.RETURN()) {
+            return {type: "return", expression: ctx.expression() && this.visit(ctx.expression())};
         }
-        if (ctx.variableDeclaration()) {
-            return this.visitVariableDeclaration(ctx.variableDeclaration());
-        }
-        if (ctx.ifStatement()) {
-            return this.visitIfStatement(ctx.ifStatement());
-        }
-        if (ctx.functionDeclaration()) {
-            return this.visitFunctionDeclaration(ctx.functionDeclaration());
-        }
-        if (ctx.functionCall()) {
-            return {
-                type: "functionCall",
-                ...this.visitFunctionCall(ctx.functionCall()),
-            };
-        }
-        if (ctx.variableModification()) {
-            return this.visitVariableModification(ctx.variableModification());
-        }
-        return null;
+        return this.visit(ctx.getChild(0));
     }
 
     visitComment(ctx) {
         return {
             type: "comment",
-            value: ctx.COMMENT_CONTENT().getText().trim(),
+            value: ctx.COMMENT_CONTENT()?.getText().trim() ?? "",
         };
     }
 
     visitVariableDeclaration(ctx) {
         const varDef = ctx.VAR_DEF().getText();
         const name = ctx.NAME().getText();
-        const hasAssignment = !!ctx.ASSIGN();
-        const statementValue = hasAssignment && ctx.statement()
-            ? this.visitStatement(ctx.statement())
-            : null;
-
         return {
             type: "variableDeclaration",
             varDef,
             name,
-            assignedType: statementValue ? statementValue.type : null,
-            value: statementValue ? statementValue.value : null,
+            ...this.assignment(ctx),
         };
     }
 
     visitIfStatement(ctx) {
-        const condition = ctx.booleanExpression()
-            ? this.visitBooleanExpression(ctx.booleanExpression())
-            : null;
-
-        const body = [];
-        const children = ctx.children || [];
-        for (const child of children) {
-            if (child instanceof TangleParser.CodeContentContext) {
-                body.push(this.visitCodeContent(child));
-            } else if (child instanceof TangleParser.CommentContext) {
-                body.push(this.visitComment(child));
-            }
-        }
         return {
             type: "ifStatement",
-            condition,
-            body,
-        };
-    }
-
-    visitBooleanExpression(ctx) {
-        return {
-            type: "booleanExpression",
-            left: this.visitExpression(ctx.expression(0)),
-            operator: ctx.operator().getText(),
-            right: this.visitExpression(ctx.expression(1)),
+            condition: this.visit(ctx.expression()),
+            body: ctx.codeContent().map(content => this.visit(content)),
         };
     }
 
@@ -164,6 +108,7 @@ export class TangleVisitor extends TangleParserVisitor {
             ? this.visitFunctionCallArgs(ctx.functionCallArgs())
             : [];
         return {
+            type: "functionCall",
             functionPath: chain,
             arguments: args,
         };
@@ -176,69 +121,35 @@ export class TangleVisitor extends TangleParserVisitor {
     visitVariableModification(ctx) {
         const varName = ctx.NAME().getText();
         const operator = ctx.ASSIGN() ? "=" : ctx.ASSIGN_OPERATOR().getText();
-        const statementValue = this.visitStatement(ctx.statement());
         return {
             type: "variableModification",
             name: varName,
             operator,
-            assignedType: statementValue.type || null,
-            value: statementValue.value || null,
+            ...this.assignment(ctx),
         };
     }
 
-    visitStatement(ctx) {
-
-        if (ctx.variableTypes()) {
-            return this.visitVariableTypes(ctx.variableTypes());
-        }
-        if (ctx.checkStatement()) {
-            return this.visitCheckStatement(ctx.checkStatement());
-        }
-        if (ctx.CREMENT_OPERATOR() && ctx.NAME()) {
-            return {
-                type: "incrementDecrement",
-                operator: ctx.CREMENT_OPERATOR().getText(),
-                name: ctx.NAME().getText(),
-            };
-        }
-        if (ctx.NAME() && ctx.CREMENT_OPERATOR()) {
-            return {
-                type: "incrementDecrement",
-                operator: ctx.CREMENT_OPERATOR().getText(),
-                name: ctx.NAME().getText(),
-            };
-        }
-        if (ctx.functionCall()) {
-            return {
-                type: "functionCall",
-                ...this.visitFunctionCall(ctx.functionCall()),
-            };
-        }
-        if (ctx.NAME()) {
-            return {type: "name", value: ctx.NAME().getText()};
-        }
-        return null;
+    assignment(ctx) {
+        const expression = ctx.expression() && this.visit(ctx.expression());
+        // Preserve the public scalar AST shape. Compound values carry their complete expression.
+        return {assignedType: expression?.type ?? null, value: expression?.value ?? expression};
     }
 
-    visitCheckStatement(ctx) {
-        const left = ctx.variableTypes(0)
-            ? this.visitVariableTypes(ctx.variableTypes(0))
-            : {type: "name", value: ctx.NAME(0).getText()};
-        const op = ctx.operator().getText();
-        const right = ctx.variableTypes(1)
-            ? this.visitVariableTypes(ctx.variableTypes(1))
-            : {type: "name", value: ctx.NAME(1).getText()};
-
+    visitUpdateExpression(ctx) {
         return {
-            type: "checkStatement",
-            left,
-            operator: op,
-            right,
+            type: "incrementDecrement",
+            operator: ctx.CREMENT_OPERATOR().getText(),
+            name: ctx.NAME().getText(),
+            prefix: ctx.start === ctx.CREMENT_OPERATOR().symbol,
         };
     }
 
     visitElementsDeclaration(ctx) {
         const tagName = ctx.NAME(0)?.getText() || null;
+        const closing = ctx.NAME(1)?.symbol;
+        if (closing && closing.text !== tagName) {
+            throw new Error(`Mismatched closing tag at line ${closing.line}:${closing.column} - expected </${tagName}>, found </${closing.text}>`);
+        }
         const attributes = ctx.elementAttribute()
             ? ctx.elementAttribute().map((attr) => this.visitElementAttribute(attr))
             : [];
@@ -293,7 +204,7 @@ export class TangleVisitor extends TangleParserVisitor {
             type: "attribute",
             name: attributeName,
             attributeType: attributeType,
-            content: attributeContent?.value || attributeContent?.expression || null,
+            content: attributeContent?.value ?? attributeContent?.expression,
         };
     }
 
@@ -376,28 +287,20 @@ export class TangleVisitor extends TangleParserVisitor {
     }
 
     visitEmbeddedIfStatement(ctx) {
-        return ctx.booleanExpression()
-            ? this.visitBooleanExpression(ctx.booleanExpression())
-            : null;
+        return this.visit(ctx.expression());
     }
 
     visitExpression(ctx) {
-        if (ctx.functionCall()) {
-            return {
-                type: "functionCall",
-                ...this.visitFunctionCall(ctx.functionCall()),
-            };
-        }
-        if (ctx.embeddedIfStatement()) {
-            return this.visitEmbeddedIfStatement(ctx.embeddedIfStatement());
-        }
-        if (ctx.variableTypes()) {
-            return this.visitVariableTypes(ctx.variableTypes());
-        }
-        if (ctx.NAME()) {
-            return {type: "name", value: ctx.NAME().getText()};
-        }
-        return null;
+        const operands = ctx.operand().map(operand => this.visit(operand));
+        if (operands.length === 1) return operands[0];
+        return {type: "operation", operands, operators: ctx.operator().map(op => op.getText())};
+    }
+
+    visitOperand(ctx) {
+        if (ctx.NAME()) return {type: "name", value: ctx.NAME().getText()};
+        if (ctx.NOT_OPERATOR()) return {type: "not", operand: this.visit(ctx.operand())};
+        if (ctx.expression()) return {type: "group", operand: this.visit(ctx.expression())};
+        return this.visit(ctx.getChild(0));
     }
 
     visitVariableTypes(ctx) {
@@ -422,7 +325,7 @@ export class TangleVisitor extends TangleParserVisitor {
     visitStringType(ctx) {
         return {
             type: "string",
-            value: ctx.STRING_CONTENT().getText(),
+            value: ctx.STRING_VALUE().getText().slice(1, -1),
         };
     }
 
@@ -430,7 +333,7 @@ export class TangleVisitor extends TangleParserVisitor {
 
         const raw = ctx.TEXT().getText();
         const processed = raw.replace(/\s+/g, " ");
-        if (!processed.trim()) {
+        if (!processed.trim() && /[\r\n]/.test(raw)) {
             return null;
         }
         return {
